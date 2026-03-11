@@ -19,7 +19,8 @@
 - [x] Model weights on HuggingFace
 - [ ] Prompt Construction and Evaluation code
 - [ ] Training data (IL stage)
-- [ ] Training code (RL stage: ADAS + SDR)
+- [ ] Training code (RL stage: reward function api server + SDR)
+- [ ] Training code (RL stage: ADAS)
 
 All will be released before late March, 2026.
 
