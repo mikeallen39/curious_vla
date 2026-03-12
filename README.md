@@ -13,7 +13,7 @@
 
 ## News 
 
-- 🎉** CuriousVLA has been recommended to CVPR'26 Findings.**
+- 🎉 **CuriousVLA has been recommended to CVPR'26 Findings.**
 
 ## TODOs
 
