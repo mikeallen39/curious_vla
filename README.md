@@ -10,8 +10,9 @@
 [![CVPR](https://img.shields.io/badge/CVPR%202026-Findings-blue.svg)]()
 
 </div>
+## News 
 
-🎉 CuriousVLA has been recommanded to CVPR'26 Findings.
+- 🎉** CuriousVLA has been recommended to CVPR'26 Findings.**
 
 ## TODOs
 
