@@ -23,13 +23,6 @@ It mirrors the transformation logic by:
 2. Reformatting the 'image' field into a dictionary under an 'images' key.
 3. Adopting a simplified I/O model for local and HDFS file handling.
 
-Example usage:
-----------------
-python process_sharegpt4v.py \
-    --input_json_path /path/to/your/QA_navsim_train.json \
-    --local_dir ./data/navsim_parquet \
-    --hdfs_dir hdfs://user/data/processed/navsim
-----------------
 """
 
 DEFAULT_TOEKN_LIST = ['8f4fbd68196b5c61', '411c6771f9985893', 'f99999645bd851ea', '520bcb47bdaa5685', 'e65b15b2baf05b05', 

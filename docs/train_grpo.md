@@ -87,7 +87,7 @@ Each parquet file contains 3 columns:
   huggingface-cli download MashiroLn/Curious-VLA --repo-type dataset --local-dir QA_navtrain_poutine_style_full
   ```
 
-- **(Optional)** Build your own data from ShareGPT `.json`:
+- **(Optional)** Build your own data from ShareGPT4V `.json`:
 
   ```bash
   cd $PROJECT_ROOT/EasyR1
