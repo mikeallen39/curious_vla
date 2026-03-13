@@ -13,7 +13,7 @@
 
 ## News 
 
-- 🎉 **CuriousVLA has been recommended to CVPR'26 Findings.**
+- 🎉 **CuriousVLA has been recommended to CVPR'26 Findings.** CuriousVLA is very suitable to serve as MLLM auto-regression-based SoTA baseline to compare. 
 
 ## TODOs
 
