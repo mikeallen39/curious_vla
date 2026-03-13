@@ -137,7 +137,8 @@ def score_single_trajectory_epdms(cfg: DictConfig,
                                 poses: List[List[float]],
                                 verbose: bool):
     """
-    EPDMS暂时无法单条打分，原因是infer_start_adjacent_mapping需要prev_token
+    EPDMS cannot score a single trajectory in isolation because
+    infer_start_adjacent_mapping requires the previous token.
     """
     logger.info(f"[PID {os.getpid()}] scoring token={token}")
     print(f"[PID {os.getpid()}] scoring token={token}")
@@ -216,10 +217,10 @@ def score_single_trajectory(cfg: DictConfig,
                                 poses: List[List[float]],
                                 verbose: bool):
     """
-    对单条轨迹打分
+    Score a single trajectory.
     :param cfg: hydra cfg
-    :param token: 场景 token
-    :param poses: N x 3 数组 (x, y, heading)
+    :param token: scene token
+    :param poses: N x 3 array (x, y, heading)
     :return: (metrics_dict)
     """
     logger.info(f"[PID {os.getpid()}] scoring token={token}")
@@ -266,16 +267,16 @@ def score_same_token_trajectory(cfg: DictConfig,
                                 poses: List[List[List[float]]],
                                 verbose: bool):
     """
-    对单条轨迹打分
+    Score trajectories sharing the same token.
     :param cfg: hydra cfg
-    :param token: 场景 token
-    :param poses: B x N x 3 数组 (x, y, heading)
+    :param token: scene token
+    :param poses: B x N x 3 array (x, y, heading)
     :return: List[metrics_dict]
     """
     logger.info(f"[PID {os.getpid()}] scoring start token={token}")
     metric_cache = metric_cache_loader.get_from_token(token)
     
-    # 遍历batch内的pose，simulator和scorer不能复用，有线程安全问题
+    # Iterate over poses in the batch; simulator and scorer cannot be reused (thread-safety)
     results = []
     for pose in poses:
         simulator: PDMSimulator = instantiate(cfg.simulator)
@@ -303,9 +304,9 @@ def score_same_token_trajectory(cfg: DictConfig,
 
         # ----------------------
         score_dict = score_row.to_dict(orient="records")[0]
-        # score_dict["pdms"] = calculate_pdms(score_dict)
+        score_dict["pdms"] = calculate_pdms(score_dict)
         # score_dict["pdms_scaled"] = calculate_sharp_scaled_pdms(score_dict)
-        score_dict["pdms"] = score_dict["pdm_score"]
+        # score_dict["pdms"] = score_dict["pdm_score"]
         score_dict["pdms_scaled"] = calculate_scaled_pdms(score_dict)
         # logger.info(score_dict) 
         if verbose:
@@ -324,23 +325,22 @@ def calculate_pdms(score_dict):
 def calculate_scaled_pdms(score_dict, gamma=[0.6, 0.6, 1.0], weights=[5, 5, 2]):
     """
     Additive Focal-PDMS:
-    - 回归加性结构，保证鲁棒性（不会因单项为0而直接归零）。
-    - 对子项应用 Focal Scaling，拉伸高分段差异。
+    - Uses additive structure for robustness (a single zero sub-score won't zero out the total).
+    - Applies Focal Scaling to sub-scores, stretching differences in the high-score range.
     """
-    # 1. 硬门控 (Hard Safety Gates) - 保持不变，碰撞/驶出道路直接为0
+    # 1. Hard Safety Gates - collision or leaving drivable area yields 0
     no_coll = score_dict.get("no_at_fault_collisions", 1.0)
     drive = score_dict.get("drivable_area_compliance", 1.0)
     if no_coll == 0 or drive == 0:
         return 0.0
 
-    # 2. 原始连续子项
-    # 默认给0.0以防缺失，确保鲁棒
+    # 2. Raw continuous sub-scores (default 0.0 if missing)
     ego = np.clip(score_dict.get("ego_progress", 0.0), 0.0, 1.0)
     ttc = np.clip(score_dict.get("time_to_collision_within_bound", 0.0), 0.0, 1.0)
     comfort = np.clip(score_dict.get("history_comfort", 0.0), 0.0, 1.0)
 
-    # 3. Focal 映射 (核心稀疏化步骤)
-    # 当 gamma < 1.0 时，将高分段(e.g., 0.9~1.0) 向下拉伸到更大的区间(e.g., 0.6~1.0)
+    # 3. Focal mapping (core sparsification step)
+    # When gamma < 1.0, stretches the high-score range (e.g., 0.9~1.0) to a wider interval (e.g., 0.6~1.0)
     def focal_map(x, g):
         return 1.0 - (1.0 - x) ** g
 
@@ -348,8 +348,7 @@ def calculate_scaled_pdms(score_dict, gamma=[0.6, 0.6, 1.0], weights=[5, 5, 2]):
     ttc_f = focal_map(ttc, gamma[1])
     comfort_f = focal_map(comfort, gamma[2])
 
-    # 4. 加权求和 (Additive Weighted Sum)
-    # 使用原版 PDMS 的权重 [5, 5, 2]
+    # 4. Additive Weighted Sum (using original PDMS weights [5, 5, 2])
     weighted_sum = weights[0] * ego_f + weights[1] * ttc_f + weights[2] * comfort_f
     total_weight = sum(weights)
 
@@ -376,6 +375,6 @@ def calculate_smooth_scaled_pdms(score_dict, pdms, alpha=0.3, k=0.75, gamma=(0.4
     if spdms < alpha:
         reward = 0.5 * pdms**2 / alpha
     else:
-        # 高分段保留 scaled-pdms 放缩，保证 > alpha/2
+        # High-score range: retain scaled-pdms scaling, ensuring > alpha/2
         reward = alpha/2 + k * (spdms - alpha)
     return float(np.clip(reward, 0.0, 1.0))

@@ -23,7 +23,7 @@ Although vLLM can also be used for deployment, we observed slightly lower perfor
 
 1. Run Deploy Script
 
-In directory `./navsim_eval`:
+In directory `curious_vla/navsim_eval`:
 
 ```bash
 model_path=/path/to/model

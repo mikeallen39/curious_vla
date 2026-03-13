@@ -103,3 +103,6 @@ data_pipeline/*.jsonl
 # OS files
 .DS_Store
 Thumbs.db
+
+EasyR1/navsim/
+EasyR1/navsim

@@ -1,22 +1,16 @@
 #!/bin/bash
-source /mnt/data/miniconda3/etc/profile.d/conda.sh
+source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate lf
 
-# pkill -9 VLLM
-# pkill -9 llamafactory-cl
-# pkilk -9 llamafact
-# pkill -9 python3.10
-# pkill -9 python
 clear
 sleep 5
 
 : "${model_name_or_path=YOUR_MODEL_PATH}"
 : "${template:=qwen2_vl}"
 
-# 用法: ./lf_serve_cot.sh <num_instances>
-# 例如: ./lf_serve_cot.sh 4   # 启动4个实例
-#      ./lf_serve_cot.sh 8   # 启动8个实例
-#      ./lf_serve_cot.sh 16  # 启动16个实例
+# Usage: ./lf_serve_cot.sh <num_instances>
+# e.g.:  ./lf_serve_cot.sh 4   # start 4 instances
+#        ./lf_serve_cot.sh 8   # start 8 instances
 
 num_instances=$1
 start_port=8192
@@ -49,5 +43,7 @@ for i in $(seq 0 $((num_instances-1))); do
 done
 
 # --vllm_maxlen 16384
-# 控制vllm kvcache最大token数（输入+输出），目前分辨率下，1920*1080 smart resize后大约1248token
-# 需要控制好prompt长度，否则可能要开TP解决OOM问题。如果有80G显存可忽略。
+# Controls vllm kvcache max tokens (input+output). At current resolution,
+# 1920x1080 after smart resize is about 1248 tokens.
+# Keep prompt length in check, otherwise you may need tensor parallelism to avoid OOM.
+# Can be ignored if you have 80GB VRAM.

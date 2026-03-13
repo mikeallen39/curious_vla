@@ -1,10 +1,14 @@
+# ===== User Configuration (modify before running) =====
+PROJECT_ROOT="/path/to/curious_vla"
+DATA_ROOT="/path/to/navsim_data"
+
 export NUPLAN_MAP_VERSION="nuplan-maps-v1.0"
-export NAVSIM_DEVKIT_ROOT="ABS_PATH_TO_NAVSIM_EVAL" # /root_dir/navsim_eval
-export OPENSCENE_DATA_ROOT="ABS_PATH_TO_OPENSCENE_DATA" # see /root_dir/navsim_eval/docs/install.md
-export NAVSIM_EXP_ROOT="EXP_ROOT_PATH" # any path you want to store the evaluation results and metric cache
-export NUPLAN_MAPS_ROOT="ABS_PATH_TO_NUPLAN_MAPS" # see /root_dir/navsim_eval/docs/install.md
+export NAVSIM_DEVKIT_ROOT="$PROJECT_ROOT/navsim_eval"
+export OPENSCENE_DATA_ROOT="$DATA_ROOT"
+export NAVSIM_EXP_ROOT="$PROJECT_ROOT/exp_root"
+export NUPLAN_MAPS_ROOT="$DATA_ROOT/maps"
 CACHE_PATH=$NAVSIM_EXP_ROOT/metric_cache_navtest
-export STATS_PATH="ABS_PATH_TO_TRAJECTORY_STATS" # /root_dir/stats/trajectory_stats_train.json
+export STATS_PATH="$PROJECT_ROOT/stats/trajectory_stats_train.json"
 
 
 TRAIN_TEST_SPLIT=navtest

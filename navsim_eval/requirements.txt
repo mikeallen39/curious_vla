@@ -39,6 +39,8 @@ tornado  # Used in nuboard.py
 tqdm  # Used widely
 ujson  # Used in serialiation_callback.py
 
+uvicorn
+fastapi
 gunicorn
 pytorch-lightning
 openai

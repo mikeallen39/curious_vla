@@ -1,6 +1,6 @@
 #!/bin/bash
 set -euo pipefail
-source /mnt/data/miniconda3/etc/profile.d/conda.sh
+source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate lf
 
 sleep 5
@@ -17,10 +17,9 @@ mm_processor_kwargs="{\"min_pixels\": ${min_pixels}, \"max_pixels\": ${max_pixel
 num_instances=$1
 start_port=8192
 
-# 用法: ./vllm_serve.sh <num_instances>
-# 例如: ./vllm_serve.sh 4   # 启动4个实例
-#      ./vllm_serve.sh 8   # 启动8个实例
-#      ./vllm_serve.sh 16  # 启动16个实例
+# Usage: ./vllm_serve.sh <num_instances>
+# e.g.:  ./vllm_serve.sh 4   # start 4 instances
+#        ./vllm_serve.sh 8   # start 8 instances
 
 if [ -z "$num_instances" ]; then
   echo "please provide num_instances: $0 4"

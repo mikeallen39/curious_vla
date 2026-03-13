@@ -28,7 +28,7 @@ cfg.experiment_name = 'gunicorn_server'
 build_logger(cfg)
 logger = logging.getLogger(__name__)
 
-# --- 预加载 ---
+# --- Preload resources ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Application startup: Loading heavy resources...")
@@ -77,7 +77,7 @@ def score_same_token_endpoint(req: ScoreGroupRequest):
     cfg = app.state.cfg
     metric_cache_loader = app.state.metric_cache_loader
 
-    # token相同，poses是B x N x 3 数组
+    # Same token, poses is a B x N x 3 array
     
     verbose = req.verbose if req.verbose is not None else False
     metrics = score_same_token_trajectory(cfg, metric_cache_loader, req.token, req.poses, verbose)
@@ -90,9 +90,9 @@ def score_same_token_endpoint(req: ScoreGroupRequest):
 
     
 
-# 保留 main 函数用于直接运行（例如调试）
+# Keep main function for direct execution (e.g., debugging)
 def main():
-    # 现在 main 函数只负责用 uvicorn 启动一个实例
+    # Launch a single uvicorn instance
     port = cfg.get('server', {}).get('port', 8900)
     uvicorn.run(app, host="0.0.0.0", port=port)
 

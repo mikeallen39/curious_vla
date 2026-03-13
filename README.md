@@ -21,13 +21,14 @@
 - [x] Model weights on HuggingFace
 - [x] Prompt Construction and Evaluation code
 - [ ] Training data (IL stage)
-- [ ] Training code (RL stage: Basic reward function api server + SDR)
-- [ ] Training code (RL stage: ADAS)
+- [ ] Model Weight after SFT (IL stage)
+- [x] Training code (RL stage: Basic reward function api server + SDR)
+- [x] Training code (RL stage: ADAS)
 
 Above will be released before late March, 2026.
 
 - [ ] Whole Data Engine
-- [ ] Lightning-fast reward function api server, and faster evaluation
+- [ ] Lightning-fast(15x throughput) reward function api server, and faster evaluation
 
 Above will be released future.
 
@@ -62,19 +63,25 @@ Performance on the **Navsim** benchmark:
 
 | Model | Base | Link |
 |:---:|:---:|:---:|
-| Curious-VLA | Qwen2.5-3B-Instruct | [HuggingFace](https://huggingface.co/MashiroLn/Curious-VLA) |
+| Curious-VLA | Qwen2.5-VL-3B-Instruct | [HuggingFace](https://huggingface.co/MashiroLn/Curious-VLA) |
 
 ## Getting Started
-
-> We are finalizing the codebase for public release. As the project involves multiple frameworks, we are carefully organizing the repository to ensure it is easy to use. The source code (training & evaluation) will be available by **late March 2026**.
-
 
 ### Evaluation
 
 You need to prepare **2 python venv**: `lf`(Llamafactory for deploy, py3.11), `navsim`(for evaluation, py3.9)
 
-Details and Commands See[docs/deploy.md](docs/deploy.md)
+Details and Commands See [docs/deploy.md](docs/deploy.md)
 
+### Training
+
+#### 1. SFT: comming soon
+
+#### 2. RL:
+
+You need to prepare **2 python venv** for `EasyR1`, `navsim`.
+
+Details and Commands See [docs/train_grpo.md](docs/train_grpo.md).
 <!-- 
 
 ### Training
