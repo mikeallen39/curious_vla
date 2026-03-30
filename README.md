@@ -20,12 +20,15 @@
 - [x] Paper release
 - [x] Model weights on HuggingFace
 - [x] Prompt Construction and Evaluation code
-- [ ] Training data (IL stage)
-- [ ] Model Weight after SFT (IL stage)
+- [ ] Quick Start of environment(sft + rl + eval unified)(before Apr. 10)
+- [ ] Training data (IL stage)(before Apr. 10)
+- [ ] Model Weight after SFT (IL stage)(before Apr. 10)
 - [x] Training code (RL stage: Basic reward function api server + SDR)
 - [x] Training code (RL stage: ADAS)
 
-Above will be released before late March, 2026.
+Most will be released before late March, 2026. 
+
+For obvious reasons about a certain confernce, we had to adjust our recent schedule 🤷, and the remaining components will be fully released by April 10.
 
 - [ ] Whole Data Engine
 - [ ] Lightning-fast(15x throughput) reward function api server, and faster evaluation
