@@ -28,7 +28,7 @@
 
 Most will be released before late March, 2026. 
 
-For obvious reasons about a certain confernce, we had to adjust our recent schedule 🤷, and the remaining components will be fully released by April 10.
+For obvious reasons about a certain confernce, our recent schedule has been significantly affected 🤷, and the remaining components will be fully released by April 10.
 
 - [ ] Whole Data Engine
 - [ ] Lightning-fast(15x throughput) reward function api server, and faster evaluation
