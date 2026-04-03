@@ -72,6 +72,8 @@ def run_pdm_score(args: List[Dict[str, Union[List[str], DictConfig]]]) -> List[p
         original_sensor_path=Path(cfg.original_sensor_path),
         data_path=Path(cfg.navsim_log_path),
         scene_filter=scene_filter,
+        synthetic_sensor_path=Path(cfg.synthetic_sensor_path),
+        synthetic_scenes_path=Path(cfg.synthetic_scenes_path),
         sensor_config=agent.get_sensor_config(),
     )
 
@@ -244,9 +246,11 @@ def main(cfg: DictConfig) -> None:
     # Extract scenes based on scene-loader to know which tokens to distribute across workers
     # TODO: infer the tokens per log from metadata, to not have to load metric cache and scenes here
     scene_loader = SceneLoader(
-        original_sensor_path=None,
+        original_sensor_path=Path(cfg.original_sensor_path),
         data_path=Path(cfg.navsim_log_path),
         scene_filter=instantiate(cfg.train_test_split.scene_filter),
+        synthetic_sensor_path=Path(cfg.synthetic_sensor_path),
+        synthetic_scenes_path=Path(cfg.synthetic_scenes_path),
         sensor_config=SensorConfig.build_no_sensors(),
     )
     metric_cache_loader = MetricCacheLoader(Path(cfg.metric_cache_path))
