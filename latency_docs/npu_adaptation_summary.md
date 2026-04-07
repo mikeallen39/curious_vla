@@ -137,6 +137,336 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 这里的 `7.6G` 是磁盘占用，不等于严格意义上的参数量；参数规模仍以 `3B` 级别理解更合适。
 
+### 4.2 当前推荐的最小数据目标
+
+如果目标是先把 Curious-VLA 的 benchmark 链路在 NPU 上跑通，当前最推荐的最小目标不是完整 `navtest`，而是：
+
+- `warmup_two_stage`
+
+原因：
+
+- `warmup_two_stage` 体量小，适合先验证环境、模型、数据布局和 benchmark 链路
+- 完整 `navtest` 的传感器数据更大，下载和整理成本明显更高
+- 当前这轮 NPU latency 适配本身也主要围绕 `warmup_two_stage` 展开
+
+当前最小必需数据是三类：
+
+- `maps`
+- `warmup_two_stage`
+- `test metadata`
+
+注意：
+
+- 这里只需要 `test` split 的 metadata / log files
+- 不需要下载完整 `test` 传感器数据
+- `warmup_two_stage` 不是完整独立数据集，它仍然依赖 `test metadata`
+
+### 4.3 推荐下载方式
+
+推荐统一使用 Hugging Face 镜像：
+
+```bash
+export HF_ENDPOINT=https://hf-mirror.com
+export HF_HUB_ENABLE_HF_TRANSFER=1
+```
+
+当前这批资源对应的下载来源可以概括为：
+
+- `maps`
+  - `pengxiang/nuplan_maps`
+- `warmup_two_stage`
+  - `OpenDriveLab/OpenScene`
+- `test metadata`
+  - `OpenDriveLab/OpenScene`
+- 模型
+  - `MashiroLn/Curious-VLA`
+
+如果需要在另一台机器上重新拉一套当前使用的数据，下面这些命令是最接近当前方案的参考版本：
+
+```bash
+mkdir -p /cache/ma-user/curious_vla_assets/data/downloads
+cd /cache/ma-user/curious_vla_assets/data/downloads
+
+wget -c https://hf-mirror.com/datasets/pengxiang/nuplan_maps/resolve/main/nuplan-maps-v1.1.zip
+unzip -o nuplan-maps-v1.1.zip
+rm -f nuplan-maps-v1.1.zip
+mv -f nuplan-maps-v1.0 maps
+
+wget -c https://hf-mirror.com/datasets/OpenDriveLab/OpenScene/resolve/main/navsim-v2/navsim_v2.2_warmup_two_stage.tar.gz
+tar -xzvf navsim_v2.2_warmup_two_stage.tar.gz
+rm -f navsim_v2.2_warmup_two_stage.tar.gz
+
+wget -c https://hf-mirror.com/datasets/OpenDriveLab/OpenScene/resolve/main/openscene-v1.1/openscene_metadata_test.tgz
+tar -xzf openscene_metadata_test.tgz
+rm -f openscene_metadata_test.tgz
+mv -f openscene-v1.1/meta_datas test_navsim_logs
+rm -rf openscene-v1.1
+```
+
+模型下载可参考：
+
+```bash
+python -c 'from huggingface_hub import snapshot_download; snapshot_download(repo_id="MashiroLn/Curious-VLA", local_dir="/cache/ma-user/curious_vla_assets/models/Curious-VLA", max_workers=1)'
+```
+
+### 4.4 数据布局与软链接注意事项
+
+当前主文档前面提到的这三个入口：
+
+- `/cache/ma-user/curious_vla_assets/data/maps`
+- `/cache/ma-user/curious_vla_assets/data/warmup_two_stage`
+- `/cache/ma-user/curious_vla_assets/data/navsim_logs/test`
+
+本质上是为了兼容仓库原有的数据访问方式。
+
+推荐整理成：
+
+```bash
+/cache/ma-user/curious_vla_assets/data/
+  maps -> downloads/maps
+  warmup_two_stage -> downloads/warmup_two_stage
+  navsim_logs/
+    test -> downloads/test_navsim_logs/test
+```
+
+如果需要手工重建，可参考：
+
+```bash
+mkdir -p /cache/ma-user/curious_vla_assets/data/navsim_logs
+
+ln -sfn /cache/ma-user/curious_vla_assets/data/downloads/maps \
+  /cache/ma-user/curious_vla_assets/data/maps
+
+ln -sfn /cache/ma-user/curious_vla_assets/data/downloads/warmup_two_stage \
+  /cache/ma-user/curious_vla_assets/data/warmup_two_stage
+
+ln -sfn /cache/ma-user/curious_vla_assets/data/downloads/test_navsim_logs/test \
+  /cache/ma-user/curious_vla_assets/data/navsim_logs/test
+```
+
+这里最容易踩的坑是最后一个软链接。
+
+必须指向：
+
+- `downloads/test_navsim_logs/test`
+
+不能只指向：
+
+- `downloads/test_navsim_logs`
+
+### 4.5 NAVSIM 各种规模数据集的详细解释
+
+这一节专门解释当前项目里最容易让人混淆的几类数据名称：`OpenScene`、`mini`、`trainval`、`test`、`navtrain`、`navtest`、`navhard_two_stage`、`warmup_two_stage`、`private_test_hard_two_stage`。
+
+先说最核心的一层关系：
+
+- 最底层的数据来源是 `OpenScene`
+- `OpenScene` 本身又分成标准数据切分：
+  - `mini`
+  - `trainval`
+  - `test`
+- NAVSIM 在这些标准切分之上，又定义了一批“更适合训练 / 评测 / 比赛”的过滤或挑战切分：
+  - `navtrain`
+  - `navtest`
+  - `navhard_two_stage`
+  - `warmup_two_stage`
+  - `private_test_hard_two_stage`
+
+再进一步说：
+
+- `OpenScene` 更像“原始可下载标准数据”
+- `NAVSIM split` 更像“基于这些原始数据组织出来的标准训练 / 测试 / 挑战集合”
+
+#### 4.5.1 `OpenScene` 是什么
+
+`OpenScene` 可以理解为：
+
+- 面向 NAVSIM / 自动驾驶规划任务整理过的一套数据发布形式
+- 它对应 nuPlan，但做了降采样与重组织
+- 当前官方说明里强调它是从 nuPlan 压缩整理过来的，并以 `2Hz` 频率提供
+
+对当前项目最重要的理解是：
+
+- 你在仓库里看到的大多数 `openscene_meta_datas/*.pkl`
+- 以及对应的 `sensor_blobs`
+
+本质上都属于这条数据体系。
+
+#### 4.5.2 `mini`、`trainval`、`test` 是什么
+
+这三个是 `OpenScene` 的标准切分。
+
+`mini`：
+
+- 演示 / demo 用的小切分
+- 适合验证代码能不能跑
+- 不适合作为严肃 benchmark 基线
+
+`trainval`：
+
+- 大规模训练与验证切分
+- 适合训练 agent 或做更系统的离线实验
+- 但传感器数据体量非常大
+
+`test`：
+
+- 标准测试切分
+- 比 `trainval` 小很多，但完整传感器数据依然很大
+- 很多 NAVSIM 测试切分都建立在它之上
+
+如果只想记一句：
+
+- `mini / trainval / test` 是原始标准数据切分
+
+#### 4.5.3 `navtrain` 是什么
+
+`navtrain` 是 NAVSIM 定义的标准训练切分。
+
+它的特点是：
+
+- 基于 `trainval`
+- 不是简单等于整个 `trainval`
+- 而是从中筛出更有价值、更多“非平凡驾驶场景”的子集
+
+这样做的意义是：
+
+- 训练更聚焦
+- 存储成本比完整 `trainval` 低
+- 更适合作为 NAVSIM 体系里的标准训练入口
+
+所以：
+
+- 如果你是做训练，`navtrain` 通常比直接全量啃 `trainval` 更有针对性
+
+#### 4.5.4 `navtest` 是什么
+
+`navtest` 是 NAVSIM v1 体系里的标准测试切分。
+
+它的特点是：
+
+- 基于 `test`
+- 通过 scene filter 从 `test` 中选出标准化测试场景
+- 更偏“官方定义的标准测试集”
+
+对本项目来说要特别注意：
+
+- `navtest` 不是当前这轮 NPU latency 适配的主线数据
+- 它更适合完整评测、PDM 评分、标准测试
+- 如果一上来就走 `navtest` 全量传感器路线，数据体量会明显变大
+
+所以当前主文档一直强调：
+
+- 先用 `warmup_two_stage` 跑通链路
+- 不要一开始就冲完整 `navtest`
+
+#### 4.5.5 `navhard_two_stage` 是什么
+
+`navhard_two_stage` 是 NAVSIM v2 更偏正式本地评测的一条测试切分。
+
+可以把它理解成：
+
+- 基于 `test` 的 harder split
+- 面向 NAVSIM v2 的 pseudo closed-loop / two-stage 评测
+- 包含真实与合成场景成分
+
+它比 `warmup_two_stage` 更接近正式挑战评测环境，但代价是：
+
+- 数据更大
+- 链路更复杂
+- 对环境和脚本稳定性的要求更高
+
+如果后面你要把当前 NPU 侧 benchmark 往“更正式的本地评测”推进，`navhard_two_stage` 会比 `warmup_two_stage` 更值得关注。
+
+#### 4.5.6 `warmup_two_stage` 是什么
+
+`warmup_two_stage` 是当前最重要的一类数据，因为这轮 NPU benchmark 主要就是围绕它跑通的。
+
+它可以理解成：
+
+- Hugging Face warmup leaderboard 对应的 warmup 测试切分
+- 一个更小、更轻量、但仍然足以验证两阶段规划链路的数据集
+
+它的优点是：
+
+- 体量小
+- 下载快
+- 本地环境更容易先跑通
+- 官方语义上也很明确：
+  本地在 `warmup_two_stage` 跑出的结果，应该和 warmup leaderboard 上看到的结果更接近
+
+但它也有边界：
+
+- 它不是完整大规模测试集
+- 当前我们手上的 warmup scene 每个样本 future 标注很短
+- 对 latency 很适合，对完整规划质量门槛不够
+
+对当前项目最实际的结论就是：
+
+- 如果你的目标是先学会项目、先把环境跑通、先得到一组可工作的 latency 数字，优先用 `warmup_two_stage`
+
+#### 4.5.7 `private_test_hard_two_stage` 是什么
+
+`private_test_hard_two_stage` 是比赛 / challenge 里的私有测试切分。
+
+它的定位是：
+
+- 真正用于官方挑战榜单的私有评测数据
+- 本地不能像普通公开数据那样随便直接完整验证最终成绩
+
+所以它对当前本地 NPU 适配的意义主要是：
+
+- 让你知道项目后续正式 submission 面向的是哪类数据
+- 但它不是当前最适合做本地 latency 适配起点的选择
+
+#### 4.5.8 为什么会觉得“好多数据名字很乱”
+
+因为这里实际上混了两层命名：
+
+- 一层是原始数据发布切分：
+  - `mini`
+  - `trainval`
+  - `test`
+- 一层是 NAVSIM / 挑战定义的训练、测试、比赛切分：
+  - `navtrain`
+  - `navtest`
+  - `navhard_two_stage`
+  - `warmup_two_stage`
+  - `private_test_hard_two_stage`
+
+再加上当前仓库同时涉及：
+
+- 训练
+- 本地评测
+- challenge 提交
+- latency benchmark
+
+所以看起来会像是“同一个项目里有好几套数据名词”。
+
+更简单的记法是：
+
+- 想训练：先看 `navtrain`
+- 想做标准公开测试：看 `navtest`
+- 想做 NAVSIM v2 更正式的 two-stage 本地测试：看 `navhard_two_stage`
+- 想先轻量跑通链路 / 对 warmup 榜单口径：看 `warmup_two_stage`
+- 想理解原始公开数据来源：看 `OpenScene` 的 `mini / trainval / test`
+
+#### 4.5.9 结合当前 Curious-VLA 项目的推荐理解
+
+如果站在“快速掌握 Curious-VLA 项目”的角度，我建议这样理解这几类数据：
+
+1. `OpenScene`
+   是整个项目数据世界的底座。
+2. `navtrain`
+   是更像训练入口的数据。
+3. `navtest` / `navhard_two_stage`
+   是更像正式评测入口的数据。
+4. `warmup_two_stage`
+   是当前最适合做环境验证、NPU 迁移、benchmark 试跑的数据。
+
+所以当前这份主文档和本轮 NPU 适配，重点反复围绕 `warmup_two_stage`，不是因为它最完整，而是因为：
+
+- 它是当前最实用、最容易落地的起点。
+
 ## 5. 可工作的 NPU 环境
 
 ### 5.1 本地 `transformers` benchmark 环境
@@ -191,6 +521,23 @@ export HF_ENDPOINT=https://hf-mirror.com
 - `numpy==1.26.4`
 
 这里单独使用一个 env，避免污染本地 `transformers` latency 环境。
+
+### 5.3 迁移到新 NPU 机器时优先确认的点
+
+如果后面要在另一台 Ascend 机器上重新搭一套，不要默认当前经验可以无条件复用。最先需要逐项确认的是：
+
+- `torch` 与 `torch_npu` 的版本组合
+- Ascend 驱动与 CANN 版本
+- `transformers` 是否能正常加载 Curious-VLA
+- 图像预处理与多模态输入是否存在算子兼容问题
+- `vllm-ascend` 或其他服务后端是否能稳定返回结果
+
+建议排查顺序：
+
+1. 先在 Python 中直接加载模型，确认 `transformers + NPU` 可用。
+2. 再确认单条图文推理可以完成。
+3. 然后再接入 agent 层 benchmark。
+4. 最后再考虑服务化部署或更完整的 evaluation 链路。
 
 ## 6. `navsim` / `nuplan` 导入链适配
 
@@ -297,6 +644,32 @@ export STATS_PATH=/home/ma-user/curious_vla/stats/trajectory_stats_train.json
 
 因此现在切换后端不需要再手动换脚本名。
 
+### 7.5 更完整 warmup eval 链路的关系
+
+除了当前已经在用的 latency benchmark 脚本，仓库里还保留了一批更偏完整评测链路的历史脚本，例如：
+
+- [local/finalize_warmup_data.sh](/home/ma-user/curious_vla/local/finalize_warmup_data.sh)
+- [local/run_metric_caching_warmup.sh](/home/ma-user/curious_vla/local/run_metric_caching_warmup.sh)
+- [local/run_warmup_eval.sh](/home/ma-user/curious_vla/local/run_warmup_eval.sh)
+- [local/wait_and_run_warmup_eval.sh](/home/ma-user/curious_vla/local/wait_and_run_warmup_eval.sh)
+
+这些脚本代表的是更完整的 warmup evaluation 思路：
+
+- 先准备数据与软链接
+- 再做 metric caching
+- 然后启动模型服务
+- 最后跑 warmup evaluation
+
+但要注意：
+
+- 当前这轮 NPU 适配和 latency 结论主要不是靠这条完整链路得出的
+- 其中部分脚本仍带有历史绝对路径或旧运行假设，不能保证在当前机器上直接可复用
+- 所以当前主线仍然是：
+  - 本地 `transformers + torch_npu` latency benchmark
+  - `vllm-ascend` 语义 gate + latency benchmark
+
+如果以后要继续补完整 warmup / PDM eval，推荐把这些脚本当作参考入口，而不是直接把它们当成当前已验证的 NPU 精确方案。
+
 ## 8. benchmark 输入输出的实际含义
 
 这一节只解释当前仓库里已经在跑的两条 benchmark 的输入和输出语义。
@@ -396,6 +769,23 @@ export STATS_PATH=/home/ma-user/curious_vla/stats/trajectory_stats_train.json
 
 表示已经反归一化后的最终预测轨迹前几个点。
 
+此外，本地 `transformers` planning benchmark 里的：
+
+- `agent_overhead_sec`
+
+不是模型 forward 本身，而更接近：
+
+```text
+compute_trajectory 总耗时 - 本地后端 forward 总耗时
+```
+
+它主要反映的是：
+
+- prompt 组织
+- 输入准备
+- agent 层封装
+- 轨迹解析与后处理
+
 ### 8.5 当前 validation 字段的含义
 
 planning benchmark 现在额外加入了结果合理性检查。
@@ -439,6 +829,25 @@ planning benchmark 现在额外加入了结果合理性检查。
 - `fde_m`
 
 在大多数情况下会等于 first-step 误差。
+
+### 8.6 如何理解本地 planning benchmark
+
+这条 benchmark 最适合回答的问题是：
+
+- 在当前 NPU 机器上，使用本地 `transformers + torch_npu` 路径时，更接近真实 planning 的耗时大概是多少？
+
+它不适合直接回答：
+
+- 服务端 API latency 是多少？
+- `vllm` 路径是否更快？
+- 完整评测链路的总耗时是多少？
+
+如果目标变成：
+
+- 比较 `transformers` 和 `vllm` 两种后端
+- 以服务化请求 latency 为主要指标
+
+那么更应该看本文后面的 `vllm-ascend` 结果与两条路径的对比部分，而不是只看本地 planning benchmark。
 
 ## 9. `transformers + torch_npu` 路径结果
 
@@ -1212,9 +1621,9 @@ cd /home/ma-user/curious_vla
 
 ## 16. 相关文档
 
-建议继续搭配阅读：
+当前 `latency_docs` 目录只保留本文作为主文档。
 
-- [latency_docs/planning_latency_benchmark_npu.md](/home/ma-user/curious_vla/latency_docs/planning_latency_benchmark_npu.md)
-- [latency_docs/latency_benchmark_1280x704.md](/home/ma-user/curious_vla/latency_docs/latency_benchmark_1280x704.md)
-- [latency_docs/warmup_benchmark_setup_npu.md](/home/ma-user/curious_vla/latency_docs/warmup_benchmark_setup_npu.md)
-- [latency_docs/warmup_benchmark_setup.md](/home/ma-user/curious_vla/latency_docs/warmup_benchmark_setup.md)
+如果后续需要补充项目总体背景或 NAVSIM 官方说明，可进一步参考：
+
+- [README.md](/home/ma-user/curious_vla/README.md)
+- [README.md](/home/ma-user/curious_vla/navsim_eval/README.md)
