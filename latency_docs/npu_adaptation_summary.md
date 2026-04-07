@@ -964,6 +964,120 @@ planning benchmark 中一个关键现象是：
 
 因此，如果要测真实轨迹输出，不建议把 `--max-new-tokens` 设为 `512` 以下。
 
+### 9.6 为什么 `Curious-VLA` 当前不是只输出轨迹
+
+这是当前项目最容易让人困惑的一点：
+
+- 既然真正用于规划的只有 `future_trajectory`
+- 为什么模型还要额外生成 `critical_objects`
+- 为什么还要生成 `explanation`
+- 为什么还要生成 `meta_behaviour`
+
+先说结论：
+
+- 这不是“技术上做不到只输出轨迹”
+- 而是“当前这版模型的训练目标和推理协议，本来就被设计成完整生成式 planner”
+
+也就是说，当前仓库里的 `Curious-VLA` 不是一个纯 trajectory head，而更像一个：
+
+- `reasoning-first`
+- `CoT-supervised`
+- `text-structured planning`
+
+的自动驾驶 VLA 模型。
+
+从当前 agent prompt 可以直接看到，它不是只要求模型回答最终轨迹，而是显式拆成了四步：
+
+1. 先判断关键对象 / 条件
+2. 再写自然语言 explanation
+3. 再给出 `meta_behaviour`
+4. 最后再输出 `future_trajectory`
+
+参考：
+
+- [navsim_qwen_norm_agent_cot.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py#L155)
+
+这说明在当前实现里：
+
+- `critical_objects`
+- `explanation`
+- `meta_behaviour`
+
+并不只是“多余字段”，而是被当作规划链路里的显式中间表示。
+
+为什么论文会这样设计？核心原因有三个。
+
+第一，它更容易做分阶段监督。
+
+如果模型只输出最终 8 个 future 点，那么训练信号只落在：
+
+- 最终轨迹对不对
+
+但如果把规划过程拆成：
+
+- 看到了什么
+- 为什么这么开
+- 行为属于什么语义
+- 最终轨迹是什么
+
+那么训练时就可以同时监督：
+
+- 感知关注点
+- 语义解释
+- 行为层摘要
+- 几何轨迹
+
+这更符合 `Curious-VLA` 论文想做的“打破窄策略、扩大探索”的目标。
+
+第二，它更适合做可解释性和错误分析。
+
+如果模型只输出 8 个点，你只能知道：
+
+- 车要往哪里开
+
+但你很难知道：
+
+- 它到底看到了哪个目标
+- 它为什么减速
+- 它为什么判成 lane follow 而不是 yield
+
+而当前这套完整 JSON 至少能让训练和调试阶段看到这些中间推理结果。
+
+第三，它和当前 RL / reward 管线的文本结构是配套的。
+
+仓库里的 reward helper 和文本格式约定，本来就是围绕完整结构化输出写的。
+
+参考：
+
+- [navsim_reward_text.py](/home/ma-user/curious_vla/EasyR1/verl/utils/reward_score/navsim/navsim_reward_text.py#L73)
+
+不过，这种设计的代价也很明确：
+
+- 在线输出更长
+- `future_trajectory` 出现在回答后半段
+- 只要前面的 `critical_objects / explanation / meta_behaviour` 没生成完，轨迹就还没出来
+- 因此 latency 会明显高于只输出轨迹的部署型 planner
+
+所以更准确的理解应该是：
+
+- `Curious-VLA` 当前优先优化的是训练表达能力和探索性
+- 不是车端部署时的最短执行链路
+
+如果目标切到实时部署，更合理的落地方向通常是：
+
+1. 保留当前“完整推理版”用于训练、分析和可解释验证
+2. 额外做一个 `trajectory-only` 推理模式
+3. 再进一步做蒸馏、轻量 head 或非自回归轨迹解码
+
+换句话说，当前版本并不是说“不能直接生成轨迹”，而是：
+
+- 官方主路径没有把它收缩成 trajectory-only deployment mode
+
+这也是为什么下面要单独补一组 `trajectory-only` benchmark：
+
+- 它不是官方 planner 主路径
+- 但可以帮助判断“如果只保留轨迹输出，latency 能降多少”
+
 ## 10. `vllm-ascend` 路径适配与结果
 
 ### 10.1 为什么标准安装不行
@@ -1444,7 +1558,274 @@ BASE_URL=http://127.0.0.1:18002/v1 \
 - 当前可比实验下，`vllm-ascend` 的单场景规划响应速度大约比本地 `transformers` 快 `19x`
 - 但这个数字不能直接当成“模型内核本身快了 19x”
 
-### 10.12 本次对比暴露出的一个环境坑
+### 10.12 `vllm` 下的 `trajectory-only` 正式 `5 + 50` benchmark
+
+在确认“只输出轨迹”这一思路值得测之后，2026 年 4 月 7 日又补跑了一组和 `10.10.1` 尽量同口径的正式 benchmark。
+
+这组实验的目标不是替代官方 full-planning 路径，而是回答一个更直接的问题：
+
+- 如果把输出协议收缩成只保留 `future_trajectory`
+- 在同样的 `vllm-ascend + 1280x704 + 5 warmup + 50 benchmark` 配置下
+- latency 到底能降多少
+
+为了避免影响原有 full-planning benchmark，这次单独新增了两个脚本：
+
+- [run_vllm_trajectory_only_latency_benchmark.py](/home/ma-user/curious_vla/local/run_vllm_trajectory_only_latency_benchmark.py)
+- [run_vllm_trajectory_only_latency_benchmark.sh](/home/ma-user/curious_vla/local/run_vllm_trajectory_only_latency_benchmark.sh)
+
+它们复用了原先的：
+
+- scene 选择逻辑
+- `1280x704` 图像上传逻辑
+- 轨迹反归一化
+- sanity / first-step error 校验
+
+但把输出合同改成了：
+
+```json
+{
+  "future_trajectory": [[x, y, heading], [x, y, heading], [x, y, heading], [x, y, heading], [x, y, heading], [x, y, heading], [x, y, heading], [x, y, heading]]
+}
+```
+
+实验参数：
+
+- 服务环境：
+  - conda env：`/cache/ma-user/curious_vla_assets/envs/curious-vla-vllm-ascend`
+  - 模型目录：`/cache/ma-user/curious_vla_assets/models/Curious-VLA`
+  - 服务地址：`http://127.0.0.1:18002/v1`
+  - `dtype=bfloat16`
+  - `max-model-len=2560`
+  - `max-num-batched-tokens=2560`
+  - `max-num-seqs=1`
+- benchmark 设置：
+  - `scene-limit=4`
+  - `selection-mode=diverse-by-command`
+  - `warmup-runs=5`
+  - `benchmark-runs=50`
+  - `width=1280`
+  - `height=704`
+  - `max-tokens=256`
+  - `temperature=0.0`
+
+正式报告：
+
+- `/cache/ma-user/curious_vla_assets/logs/vllm_trajectory_only_latency_benchmark_5plus50_resume_20260407.json`
+
+正式结果汇总：
+
+- benchmark count：`50`
+- request 成功：`50/50`
+- contract valid：`0/50`
+- trajectory valid：`37/50`
+- overall valid：`0/50`
+
+request latency 统计：
+
+- mean：`8.033568s`
+- p50：`8.135137s`
+- p95：`10.016640s`
+- min：`5.746482s`
+- max：`10.297541s`
+
+总场景耗时统计：
+
+- mean total scene time：`8.033653s`
+- p50 total scene time：`8.135229s`
+- p95 total scene time：`10.016720s`
+- min total scene time：`5.746550s`
+- max total scene time：`10.297639s`
+
+客户端额外开销统计：
+
+- mean overhead：`0.000085s`
+- p50 overhead：`0.000087s`
+- p95 overhead：`0.000099s`
+
+如果只和当前 full-planning 的正式 `vllm` 基线比较时延：
+
+- full-planning mean request latency：`13.098643s`
+- trajectory-only mean request latency：`8.033568s`
+- 下降：`5.065075s`
+- 降幅约：`38.67%`
+
+按 p50 看也类似：
+
+- full-planning p50 request latency：`13.036212s`
+- trajectory-only p50 request latency：`8.135137s`
+- 下降：`4.901075s`
+- 降幅约：`37.60%`
+
+这说明：
+
+- 只从 latency 角度看，trajectory-only 确实明显更快
+- 也进一步证明当前 full-planning 路径里，大量时间确实花在长结构化文本生成上
+
+但这组实验当前还不能直接作为“正式可用 baseline”，原因也很明确：
+
+- `contract_valid_rate = 0.0`
+- `overall_valid_rate = 0.0`
+
+也就是说，模型虽然经常能在字符串里给出可解析的轨迹，但并没有稳定遵守新的 trajectory-only 输出协议。
+
+从报告里的原始输出可以看到，常见失败模式包括：
+
+1. 仍然倾向于输出旧风格结构，而不是只输出 `future_trajectory`
+2. 把 `future_trajectory` 放进一个额外的 `meta` 字段里
+3. 又重新生成了 `explanation` 或其它辅助字段
+4. 某些 scene 上会出现大量重复 token，导致轨迹本身也失败
+
+例如一个典型输出会长成：
+
+```json
+{
+  "meta": {
+    "straight": "no",
+    "left": "no",
+    "right": "no",
+    "future_trajectory": "[PT, ...]"
+  }
+}
+```
+
+这类输出的特点是：
+
+- trajectory 本身经常还能被宽松 parser 抓出来
+- 所以 `trajectory_valid` 不一定低
+- 但它不满足新的 strict contract
+- 因而 `contract_valid` 和 `overall_valid` 都会失败
+
+进一步拆开看，这组实验“全部 overall_valid 失败”并不等于“轨迹都很差”。
+
+更准确的失败结构是：
+
+- `request_ok = 50/50`
+- `contract_valid = 0/50`
+- `trajectory_valid = 37/50`
+- `overall_valid = 0/50`
+
+也就是说：
+
+- 所有请求都成功返回了
+- 其中有 `37` 次已经产出了可解析、并且通过当前几何 sanity / reference gate 的轨迹
+- 真正把全部结果压成 `overall_valid=False` 的首要原因，是 strict contract 没有被遵守
+
+### 10.12.1 为什么说主要不是“轨迹和 GT 偏差很大”
+
+对成功解析出轨迹的 `37` 次样本，当前 warmup 数据里能比较到的 future reference 其实很接近。
+
+这里需要先说明一个限制：
+
+- 当前 warmup 数据每个样本只有 `1` 个 future 点
+- 所以这次的 `ADE / FDE` 实际上退化成了 first-step error
+- 它只能说明“第一个 future 点接近参考”，还不能说明完整 8-step 都已经充分对齐
+
+但即便如此，现有数字仍然说明：
+
+- first-step error mean：`0.018463 m`
+- first-step error max：`0.033679 m`
+- first-step error min：`0.005109 m`
+
+并且在所有成功解析的样本里：
+
+- `reference_valid_true = 37`
+- `reference_valid_false = 0`
+
+这意味着当前失败并不是：
+
+- 模型稳定输出了 8 点轨迹
+- 但这些轨迹和参考 future 差得很远
+
+而更像是：
+
+- 模型常常能给出几何上还不错的轨迹
+- 但没有稳定遵守新的 trajectory-only 输出协议
+
+### 10.12.2 真正的失败主要分成两类
+
+第一类是 contract failure。
+
+这也是当前最主要的失败来源。
+
+模型虽然被要求只输出：
+
+```json
+{
+  "future_trajectory": ...
+}
+```
+
+但它仍然强烈倾向于沿用原来的 full-planning 分布，比如：
+
+- 输出 `meta`
+- 把 `future_trajectory` 塞进 `meta` 里
+- 继续生成 `explanation`
+- 继续输出旧风格辅助字段
+
+因此：
+
+- 宽松 parser 还能把轨迹抓出来
+- 但 strict contract 一定失败
+
+第二类是 scene-specific generation failure。
+
+4 个 scene 的表现并不均匀：
+
+- `41932cf3f8bc365f0`：`13/13` 次 `trajectory_valid=True`
+- `72747cb900d155b4f`：`12/12` 次 `trajectory_valid=True`
+- `056e9afeaf8b6c1ca`：`12/12` 次 `trajectory_valid=True`
+- `086487f683be38e1b`：`13/13` 次 `trajectory_valid=False`
+
+也就是说：
+
+- 前 3 个 scene 上，trajectory-only prompt 已经能相当稳定地产出可解析轨迹
+- 但在 `086487f683be38e1b` 上，模型会稳定退化成坏输出模式
+
+这个 scene 的典型失败输出不是“给了一条明显错误的大偏差轨迹”，而是：
+
+- 大量重复 `"no"`
+- 杂乱的 `meta` 键
+- 没有形成完整可解析的 `future_trajectory`
+
+所以这一类失败也更接近：
+
+- 生成格式崩坏
+
+而不是：
+
+- 轨迹已经生成出来了，但和 GT 偏差很大
+
+### 10.12.3 因此应该怎么理解这组 trajectory-only 结果
+
+这组结果最准确的解读应该是：
+
+1. 只改 prompt 就已经把 mean request latency 从 `13.10s` 压到了 `8.03s`，说明方向是对的。
+2. 多数失败不是“轨迹质量差”，而是“模型不服从新的更轻 schema”。
+3. 当前 checkpoint 仍然牢牢绑定在 full-planning 输出分布上，所以 trajectory-only 还不能靠 prompt hack 直接变成正式部署模式。
+
+另外，这组 4 个 scene 的表现也不完全一致：
+
+- `41932cf3f8bc365f0`：`13/13` 次 `trajectory_valid=True`
+- `72747cb900d155b4f`：`12/12` 次 `trajectory_valid=True`
+- `056e9afeaf8b6c1ca`：`12/12` 次 `trajectory_valid=True`
+- `086487f683be38e1b`：`13/13` 次 `trajectory_valid=False`
+
+这说明 trajectory-only prompt 不是“完全不能生成轨迹”，而是：
+
+- 对部分 scene 已经能给出几何上合理的轨迹
+- 但模型没有被训练成稳定遵循这种更轻的部署协议
+- 因此当前更像一个“latency 潜力上界实验”，而不是 production-ready 配置
+
+所以这组结果最合理的解释是：
+
+1. trajectory-only 是值得继续做的，因为它把 mean latency 从 `13.10s` 压到了 `8.03s`
+2. 但仅改 prompt 还不够，当前 checkpoint 仍然强烈偏向原来的 full-planning 输出分布
+3. 如果后面真要把 trajectory-only 变成正式部署路径，至少还需要：
+   - 更强的 schema constraint
+   - trajectory-only SFT / distill
+   - 或者单独训练更轻的 trajectory head
+
+### 10.13 本次对比暴露出的一个环境坑
 
 本次第一次跑 `vllm` benchmark 时，请求并没有真正打到本地服务，而是被全局环境变量里的：
 
@@ -1492,6 +1873,9 @@ BASE_URL=http://127.0.0.1:18002/v1 \
 - `1280x704` 分辨率已经在真实 VL planning sample 上通过语义 gate
 - gate 通过后，可以继续做 `vllm` 服务化 latency benchmark
 - 在本次同场景、同分辨率、同 token 上限的直接对比里，`vllm-ascend` 的单场景规划响应大约比本地 `transformers` 快 `19x`
+- 在正式 `5 + 50` full-planning benchmark 里，当前 `vllm-ascend` 基线约为 `13.10s`
+- 在同口径的 `trajectory-only` 实验里，mean request latency 可以降到 `8.03s`
+- 但 trajectory-only 目前还没有通过 strict contract gate，所以它暂时只能作为“延迟潜力实验”，不能直接替代当前 full-planning 基线
 - 在现有 warmup 数据上，planning benchmark 已经具备“基本合理性验证”，不再只是纯时延数字
 
 但目前还不能声称：
