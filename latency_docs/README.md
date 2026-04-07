@@ -9,39 +9,19 @@
 
 这几份更偏“结论、现状、结果汇总”，如果你的目标是快速了解当前做到哪一步了，优先看它们。
 
-### [vllm_ascend_1280x704_total_report.md](/home/ma-user/curious_vla/latency_docs/vllm_ascend_1280x704_total_report.md)
-
-用途：
-
-- 当前最完整的 `vllm-ascend + 1280x704` 总结
-- 包含配置、语义 gate、正式 benchmark 结果、与旧 benchmark 的关系
-
-定位：
-
-- 强结果报告
-
 ### [npu_adaptation_summary.md](/home/ma-user/curious_vla/latency_docs/npu_adaptation_summary.md)
 
 用途：
 
 - NPU 适配全过程的大汇总
-- 涵盖环境、数据、脚本、输入输出含义、已知限制
+- 已合并原先独立的 `vllm_ascend_validation.md` 与 `vllm_ascend_1280x704_total_report.md`
+- 同时覆盖本地 `transformers` 路径与 `vllm-ascend` 路径
+- 涵盖环境、数据、脚本、输入输出含义、语义 gate、benchmark 结果与已知限制
 
 定位：
 
-- 综合结果报告
+- 主结果报告
 - 也带少量操作说明
-
-### [vllm_ascend_validation.md](/home/ma-user/curious_vla/latency_docs/vllm_ascend_validation.md)
-
-用途：
-
-- 更偏 `vllm-ascend` 路径的验证记录
-- 重点是安装、可用性验证、语义 gate 的形成过程
-
-定位：
-
-- 阶段性结果报告
 
 ### [planning_latency_benchmark_npu.md](/home/ma-user/curious_vla/latency_docs/planning_latency_benchmark_npu.md)
 
@@ -93,10 +73,9 @@
 
 建议顺序：
 
-1. `vllm_ascend_1280x704_total_report.md`
-2. `npu_adaptation_summary.md`
-3. `planning_latency_benchmark_npu.md`
-4. `vllm_ascend_validation.md`
+1. `npu_adaptation_summary.md`
+2. `planning_latency_benchmark_npu.md`
+3. `latency_benchmark_1280x704.md`
 
 如果你要实际复现，再看：
 
@@ -108,9 +87,7 @@
 如果把 `latency_docs` 分成两类，可以简单理解为：
 
 - 结果报告：
-  - `vllm_ascend_1280x704_total_report.md`
   - `npu_adaptation_summary.md`
-  - `vllm_ascend_validation.md`
   - `planning_latency_benchmark_npu.md`
   - `latency_benchmark_1280x704.md`
 - 执行手册：

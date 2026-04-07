@@ -128,8 +128,7 @@ compute_trajectory 总耗时 - 本地后端 forward 总耗时
 
 那么应该看：
 
-- `vllm_ascend_validation.md`
-- `vllm_ascend_1280x704_total_report.md`
+- [latency_docs/npu_adaptation_summary.md](/home/ma-user/curious_vla/latency_docs/npu_adaptation_summary.md)
 
 ## 7. 建议
 
