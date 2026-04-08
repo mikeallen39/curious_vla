@@ -5,13 +5,6 @@
 - 本地进程内 `transformers + torch_npu`
 - 服务化 `vllm-ascend`
 
-本文是当前 NPU 侧的主报告，合并了原先独立的：
-
-- `vllm_ascend_validation.md`
-- `vllm_ascend_1280x704_total_report.md`
-
-如果只看一份文档，优先看本文。
-
 ## 1. 目标范围
 
 本轮工作的目标是：
@@ -26,7 +19,7 @@
 - model-only latency benchmark
 - `AgentInput -> NavsimCoTQwenAgent.compute_trajectory()` planning latency benchmark
 - `vllm-ascend` OpenAI-compatible 服务
-- 基于真实 warmup scene 的轻量级语义 gate
+- 基于真实 warmup 场景样本的基础结果合理性校验（轻量级语义 gate）
 - `1280x704` 分辨率下的 `vllm-ascend` planning latency benchmark
 
 当前还没有补全的内容包括：
@@ -1194,7 +1187,7 @@ vllm serve /cache/ma-user/curious_vla_assets/models/Curious-VLA \
 - 纯文本 smoke test 不能代表真实规划 prompt
 - 如果结果格式不稳定或轨迹无意义，测出来的 latency 没有参考价值
 
-因此后来补了一套轻量级语义 gate，入口是：
+因此后来补了一套“基于真实 warmup 场景样本的基础结果合理性校验”，也就是这里说的轻量级语义 gate，入口是：
 
 - [local/run_vllm_semantic_validation.py](/home/ma-user/curious_vla/local/run_vllm_semantic_validation.py)
 - [local/run_vllm_semantic_validation.sh](/home/ma-user/curious_vla/local/run_vllm_semantic_validation.sh)
@@ -1203,7 +1196,7 @@ vllm serve /cache/ma-user/curious_vla_assets/models/Curious-VLA \
 
 1. text-only schema control
 2. text-only planning-style control
-3. 基于真实 warmup scene 和真实前视图图像的 VL planning 校验
+3. 基于真实 warmup 场景样本和真实前视图图像的 VL planning 合理性校验
 
 主要检查项：
 
