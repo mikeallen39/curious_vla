@@ -894,23 +894,6 @@ planning benchmark 现在额外加入了结果合理性检查。
 
 ## 9. 为什么 `Curious-VLA` 当前不是只输出轨迹
 
-为避免误导，本节不再保留早期本地 `transformers + torch_npu` 的探索性 latency 数字。
-
-原因是那些结果主要来自：
-
-- 单场景
-- `warmup-runs=0`
-- `benchmark-runs=1`
-
-这类数字更适合链路打通和量级观察，不适合当正式 latency 基线。
-
-当前文档里真正可作为正式参考的 latency 结果，优先看后面的：
-
-- `vllm-ascend` 正式 `5 + 50` benchmark
-- `trajectory-only` 正式 `5 + 50` benchmark
-
-下面只保留一个与理解项目设计直接相关、但不构成误导性 latency 基线的核心问题：
-
 这是当前项目最容易让人困惑的一点：
 
 - 既然真正用于规划的只有 `future_trajectory`
