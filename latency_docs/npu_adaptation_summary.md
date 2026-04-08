@@ -352,7 +352,56 @@ ln -sfn /cache/ma-user/curious_vla_assets/data/downloads/test_navsim_logs/test \
 - 先用 `warmup_two_stage` 跑通链路
 - 不要一开始就冲完整 `navtest`
 
-#### 4.5.5 `navhard_two_stage` 是什么
+#### 4.5.5 这里的 `two_stage` 到底是什么意思
+
+这里的 `two_stage` 很容易让人误解，因为它和论文里说的“训练两阶段”不是一回事。
+
+在当前数据集 / 评测语境里，`two_stage` 主要是指：
+
+- NAVSIM v2 的两阶段伪闭环评测设置
+
+更直白地说，它的意思更接近：
+
+1. 先在一个真实场景上让 planner / agent 产出规划结果
+2. 再基于这个结果，接入第二阶段的合成或扩展场景继续评估
+
+所以这里的 `two_stage` 重点不是：
+
+- 训练分成两步
+
+而是：
+
+- 评测分成两个阶段
+- 想更接近 closed-loop，但又不是完整在线闭环仿真
+
+也正因为如此，官方文档里常把它和这些词放在一起：
+
+- `pseudo closed-loop`
+- `reactive traffic agents`
+- `synthetic scenes`
+
+因此，在当前项目里看到：
+
+- `warmup_two_stage`
+- `navhard_two_stage`
+- `private_test_hard_two_stage`
+
+你可以优先把它理解成：
+
+- 面向 NAVSIM v2 两阶段评测口径的数据切分
+
+而不是：
+
+- Curious-VLA 训练范式里的 IL -> RL 两阶段
+
+这两个 “two stage” 是两个不同层面的概念：
+
+- 训练范式里的 `two-stage`
+  - 指 `IL / SFT -> RL`
+- 数据 / 评测里的 `two_stage`
+  - 指 NAVSIM v2 的两阶段伪闭环评测
+
+#### 4.5.6 `navhard_two_stage` 是什么
 
 `navhard_two_stage` 是 NAVSIM v2 更偏正式本地评测的一条测试切分。
 
@@ -370,7 +419,7 @@ ln -sfn /cache/ma-user/curious_vla_assets/data/downloads/test_navsim_logs/test \
 
 如果后面你要把当前 NPU 侧 benchmark 往“更正式的本地评测”推进，`navhard_two_stage` 会比 `warmup_two_stage` 更值得关注。
 
-#### 4.5.6 `warmup_two_stage` 是什么
+#### 4.5.7 `warmup_two_stage` 是什么
 
 `warmup_two_stage` 是当前最重要的一类数据，因为这轮 NPU benchmark 主要就是围绕它跑通的。
 
@@ -397,7 +446,7 @@ ln -sfn /cache/ma-user/curious_vla_assets/data/downloads/test_navsim_logs/test \
 
 - 如果你的目标是先学会项目、先把环境跑通、先得到一组可工作的 latency 数字，优先用 `warmup_two_stage`
 
-#### 4.5.7 `private_test_hard_two_stage` 是什么
+#### 4.5.8 `private_test_hard_two_stage` 是什么
 
 `private_test_hard_two_stage` 是比赛 / challenge 里的私有测试切分。
 
@@ -411,7 +460,7 @@ ln -sfn /cache/ma-user/curious_vla_assets/data/downloads/test_navsim_logs/test \
 - 让你知道项目后续正式 submission 面向的是哪类数据
 - 但它不是当前最适合做本地 latency 适配起点的选择
 
-#### 4.5.8 为什么会觉得“好多数据名字很乱”
+#### 4.5.9 为什么会觉得“好多数据名字很乱”
 
 因为这里实际上混了两层命名：
 
@@ -443,7 +492,7 @@ ln -sfn /cache/ma-user/curious_vla_assets/data/downloads/test_navsim_logs/test \
 - 想先轻量跑通链路 / 对 warmup 榜单口径：看 `warmup_two_stage`
 - 想理解原始公开数据来源：看 `OpenScene` 的 `mini / trainval / test`
 
-#### 4.5.9 结合当前 Curious-VLA 项目的推荐理解
+#### 4.5.10 结合当前 Curious-VLA 项目的推荐理解
 
 如果站在“快速掌握 Curious-VLA 项目”的角度，我建议这样理解这几类数据：
 
@@ -552,7 +601,8 @@ ln -sfn /cache/ma-user/curious_vla_assets/data/downloads/test_navsim_logs/test \
 因此本次通过环境变量固定：
 
 ```bash
-export STATS_PATH=/home/ma-user/curious_vla/stats/trajectory_stats_train.json
+export PROJECT_ROOT=/path/to/curious_vla
+export STATS_PATH=$PROJECT_ROOT/stats/trajectory_stats_train.json
 ```
 
 ## 7. 新增和使用的本地脚本
@@ -561,7 +611,7 @@ export STATS_PATH=/home/ma-user/curious_vla/stats/trajectory_stats_train.json
 
 新增：
 
-- [local/local_env_npu.sh](/home/ma-user/curious_vla/local/local_env_npu.sh)
+- [local/local_env_npu.sh](../local/local_env_npu.sh)
 
 作用：
 
@@ -578,8 +628,8 @@ export STATS_PATH=/home/ma-user/curious_vla/stats/trajectory_stats_train.json
 
 新增：
 
-- [local/run_latency_benchmark_npu.py](/home/ma-user/curious_vla/local/run_latency_benchmark_npu.py)
-- [local/run_latency_benchmark_npu.sh](/home/ma-user/curious_vla/local/run_latency_benchmark_npu.sh)
+- [local/run_latency_benchmark_npu.py](../local/run_latency_benchmark_npu.py)
+- [local/run_latency_benchmark_npu.sh](../local/run_latency_benchmark_npu.sh)
 
 作用：
 
@@ -598,8 +648,8 @@ export STATS_PATH=/home/ma-user/curious_vla/stats/trajectory_stats_train.json
 
 新增：
 
-- [local/run_planning_latency_benchmark_npu.py](/home/ma-user/curious_vla/local/run_planning_latency_benchmark_npu.py)
-- [local/run_planning_latency_benchmark_npu.sh](/home/ma-user/curious_vla/local/run_planning_latency_benchmark_npu.sh)
+- [local/run_planning_latency_benchmark_npu.py](../local/run_planning_latency_benchmark_npu.py)
+- [local/run_planning_latency_benchmark_npu.sh](../local/run_planning_latency_benchmark_npu.sh)
 
 这套脚本测的是更接近 end-to-end planning latency 的本地路径：
 
@@ -619,16 +669,16 @@ export STATS_PATH=/home/ma-user/curious_vla/stats/trajectory_stats_train.json
 
 新增：
 
-- [local/local_env_vllm_ascend.sh](/home/ma-user/curious_vla/local/local_env_vllm_ascend.sh)
-- [local/run_vllm_semantic_validation.py](/home/ma-user/curious_vla/local/run_vllm_semantic_validation.py)
-- [local/run_vllm_semantic_validation.sh](/home/ma-user/curious_vla/local/run_vllm_semantic_validation.sh)
-- [local/run_vllm_planning_latency_benchmark.py](/home/ma-user/curious_vla/local/run_vllm_planning_latency_benchmark.py)
-- [local/run_vllm_planning_latency_benchmark.sh](/home/ma-user/curious_vla/local/run_vllm_planning_latency_benchmark.sh)
-- [local/run_planning_latency_benchmark.sh](/home/ma-user/curious_vla/local/run_planning_latency_benchmark.sh)
+- [local/local_env_vllm_ascend.sh](../local/local_env_vllm_ascend.sh)
+- [local/run_vllm_semantic_validation.py](../local/run_vllm_semantic_validation.py)
+- [local/run_vllm_semantic_validation.sh](../local/run_vllm_semantic_validation.sh)
+- [local/run_vllm_planning_latency_benchmark.py](../local/run_vllm_planning_latency_benchmark.py)
+- [local/run_vllm_planning_latency_benchmark.sh](../local/run_vllm_planning_latency_benchmark.sh)
+- [local/run_planning_latency_benchmark.sh](../local/run_planning_latency_benchmark.sh)
 
 其中统一入口是：
 
-- [local/run_planning_latency_benchmark.sh](/home/ma-user/curious_vla/local/run_planning_latency_benchmark.sh)
+- [local/run_planning_latency_benchmark.sh](../local/run_planning_latency_benchmark.sh)
 
 它支持：
 
@@ -641,10 +691,10 @@ export STATS_PATH=/home/ma-user/curious_vla/stats/trajectory_stats_train.json
 
 除了当前已经在用的 latency benchmark 脚本，仓库里还保留了一批更偏完整评测链路的历史脚本，例如：
 
-- [local/finalize_warmup_data.sh](/home/ma-user/curious_vla/local/finalize_warmup_data.sh)
-- [local/run_metric_caching_warmup.sh](/home/ma-user/curious_vla/local/run_metric_caching_warmup.sh)
-- [local/run_warmup_eval.sh](/home/ma-user/curious_vla/local/run_warmup_eval.sh)
-- [local/wait_and_run_warmup_eval.sh](/home/ma-user/curious_vla/local/wait_and_run_warmup_eval.sh)
+- [local/finalize_warmup_data.sh](../local/finalize_warmup_data.sh)
+- [local/run_metric_caching_warmup.sh](../local/run_metric_caching_warmup.sh)
+- [local/run_warmup_eval.sh](../local/run_warmup_eval.sh)
+- [local/wait_and_run_warmup_eval.sh](../local/wait_and_run_warmup_eval.sh)
 
 这些脚本代表的是更完整的 warmup evaluation 思路：
 
@@ -671,7 +721,7 @@ export STATS_PATH=/home/ma-user/curious_vla/stats/trajectory_stats_train.json
 
 对应脚本：
 
-- [local/run_latency_benchmark_npu.py](/home/ma-user/curious_vla/local/run_latency_benchmark_npu.py)
+- [local/run_latency_benchmark_npu.py](../local/run_latency_benchmark_npu.py)
 
 这条 benchmark 的输入不是完整场景，而是：
 
@@ -711,7 +761,7 @@ export STATS_PATH=/home/ma-user/curious_vla/stats/trajectory_stats_train.json
 
 对应脚本：
 
-- [local/run_planning_latency_benchmark_npu.py](/home/ma-user/curious_vla/local/run_planning_latency_benchmark_npu.py)
+- [local/run_planning_latency_benchmark_npu.py](../local/run_planning_latency_benchmark_npu.py)
 
 这条 benchmark 的输入来自真实 warmup scene：
 
@@ -753,7 +803,7 @@ export STATS_PATH=/home/ma-user/curious_vla/stats/trajectory_stats_train.json
 注意：
 
 - 模型输出的是归一化轨迹
-- agent 会再用 [stats/trajectory_stats_train.json](/home/ma-user/curious_vla/stats/trajectory_stats_train.json) 做反归一化
+- agent 会再用 [stats/trajectory_stats_train.json](../stats/trajectory_stats_train.json) 做反归一化
 - 最终返回的是 `Trajectory`
 
 因此报告中的：
@@ -842,122 +892,24 @@ planning benchmark 现在额外加入了结果合理性检查。
 
 那么更应该看本文后面的 `vllm-ascend` 结果与两条路径的对比部分，而不是只看本地 planning benchmark。
 
-## 9. `transformers + torch_npu` 路径结果
+## 9. 为什么 `Curious-VLA` 当前不是只输出轨迹
 
-### 9.1 model-only latency
+为避免误导，本节不再保留早期本地 `transformers + torch_npu` 的探索性 latency 数字。
 
-已成功运行：
+原因是那些结果主要来自：
 
-```bash
-./local/run_latency_benchmark_npu.sh \
-  --warmup-runs 1 \
-  --benchmark-runs 2 \
-  --max-new-tokens 64
-```
+- 单场景
+- `warmup-runs=0`
+- `benchmark-runs=1`
 
-结果：
+这类数字更适合链路打通和量级观察，不适合当正式 latency 基线。
 
-- resize：`1280x704`
-- 平均 latency 约 `42.7s`
+当前文档里真正可作为正式参考的 latency 结果，优先看后面的：
 
-报告：
+- `vllm-ascend` 正式 `5 + 50` benchmark
+- `trajectory-only` 正式 `5 + 50` benchmark
 
-- `/cache/ma-user/curious_vla_assets/logs/latency_benchmark_npu_20260406_000347.json`
-
-### 9.2 planning latency，固定 `1280x704` 的早期非 fallback 结果
-
-已成功运行：
-
-```bash
-./local/run_planning_latency_benchmark_npu.sh \
-  --scene-path /cache/ma-user/curious_vla_assets/data/downloads/warmup_two_stage/openscene_meta_datas/086487f683be38e1b.pkl \
-  --warmup-runs 0 \
-  --benchmark-runs 1 \
-  --max-new-tokens 512
-```
-
-结果：
-
-- fixed resize `1280x704`
-- 非 fallback
-- 单场景 planning latency 约 `346.97s`
-
-报告：
-
-- `/cache/ma-user/curious_vla_assets/logs/planning_latency_benchmark_npu_20260406_100458.json`
-
-### 9.3 planning latency，原始 `1920x1080`，非 fallback
-
-已成功运行：
-
-```bash
-./local/run_planning_latency_benchmark_npu.sh \
-  --scene-path /cache/ma-user/curious_vla_assets/data/downloads/warmup_two_stage/openscene_meta_datas/086487f683be38e1b.pkl \
-  --warmup-runs 0 \
-  --benchmark-runs 1 \
-  --max-new-tokens 512 \
-  --use-raw-resolution
-```
-
-结果：
-
-- raw `1920x1080`
-- 非 fallback
-- 单场景 planning latency 约 `611.01s`
-
-报告：
-
-- `/cache/ma-user/curious_vla_assets/logs/planning_latency_benchmark_npu_20260406_101232.json`
-
-### 9.4 planning latency，固定 `1280x704`，加入 validation 后的当前基线
-
-当前更有代表性的命令：
-
-```bash
-./local/run_planning_latency_benchmark_npu.sh \
-  --scene-path /cache/ma-user/curious_vla_assets/data/downloads/warmup_two_stage/openscene_meta_datas/086487f683be38e1b.pkl \
-  --warmup-runs 0 \
-  --benchmark-runs 1
-```
-
-运行日期：
-
-- 2026 年 4 月 7 日
-
-结果：
-
-- fixed resize `1280x704`
-- `fallback=False`
-- `validated=True`
-- total latency 约 `296.14s`
-- client latency 约 `296.11s`
-- `first_step_error_m ≈ 0.0134`
-- `first_step_yaw_error_rad ≈ 0.00539`
-
-报告：
-
-- `/cache/ma-user/curious_vla_assets/logs/planning_latency_benchmark_npu_20260407_090123.json`
-
-这条结果比早期“只看是否跑完”更有意义，因为它满足了当前定义的基本合理性门槛。
-
-### 9.5 token 长度与 fallback 行为
-
-planning benchmark 中一个关键现象是：
-
-- `64` new tokens 不够
-- `256` new tokens 仍然不够
-- `512` new tokens 才在实测 scene 上避免 fallback
-
-原因：
-
-- 当前 CoT prompt 输出很长
-- 模型会先输出 `critical_objects / explanation / meta_behaviour`
-- `future_trajectory` 经常在字符串中途被截断
-- `NavsimCoTQwenAgent` 解析失败后会退回 constant-velocity fallback
-
-因此，如果要测真实轨迹输出，不建议把 `--max-new-tokens` 设为 `512` 以下。
-
-### 9.6 为什么 `Curious-VLA` 当前不是只输出轨迹
+下面只保留一个与理解项目设计直接相关、但不构成误导性 latency 基线的核心问题：
 
 这是当前项目最容易让人困惑的一点：
 
@@ -988,7 +940,7 @@ planning benchmark 中一个关键现象是：
 
 参考：
 
-- [navsim_qwen_norm_agent_cot.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py#L155)
+- [navsim_qwen_norm_agent_cot.py](../navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py#L155)
 
 这说明在当前实现里：
 
@@ -1042,7 +994,7 @@ planning benchmark 中一个关键现象是：
 
 参考：
 
-- [navsim_reward_text.py](/home/ma-user/curious_vla/EasyR1/verl/utils/reward_score/navsim/navsim_reward_text.py#L73)
+- [navsim_reward_text.py](../EasyR1/verl/utils/reward_score/navsim/navsim_reward_text.py#L73)
 
 不过，这种设计的代价也很明确：
 
@@ -1189,8 +1141,8 @@ vllm serve /cache/ma-user/curious_vla_assets/models/Curious-VLA \
 
 因此后来补了一套“基于真实 warmup 场景样本的基础结果合理性校验”，也就是这里说的轻量级语义 gate，入口是：
 
-- [local/run_vllm_semantic_validation.py](/home/ma-user/curious_vla/local/run_vllm_semantic_validation.py)
-- [local/run_vllm_semantic_validation.sh](/home/ma-user/curious_vla/local/run_vllm_semantic_validation.sh)
+- [local/run_vllm_semantic_validation.py](../local/run_vllm_semantic_validation.py)
+- [local/run_vllm_semantic_validation.sh](../local/run_vllm_semantic_validation.sh)
 
 这套 gate 分三层：
 
@@ -1462,96 +1414,7 @@ request latency 统计：
 
 这组结果可以作为当前仓库在 Ascend NPU 上、`vllm-ascend + 1280x704` 配置下更正式的 latency 基线。
 
-### 10.11 同配置下的 `transformers` / `vllm` 直接对比
-
-为了看清两条路径的实际差距，2026 年 4 月 7 日又补跑了一组更直接的对比实验。
-
-对比时固定了这些条件：
-
-- 同一条 scene：
-  `086487f683be38e1b.pkl`
-- 同一分辨率：
-  `1280x704`
-- 同一生成上限：
-  `512`
-- 同样都是：
-  `warmup-runs=0`、`benchmark-runs=1`
-
-`transformers` 命令：
-
-```bash
-./local/run_planning_latency_benchmark.sh \
-  --backend transformers \
-  --scene-path /cache/ma-user/curious_vla_assets/data/downloads/warmup_two_stage/openscene_meta_datas/086487f683be38e1b.pkl \
-  --warmup-runs 0 \
-  --benchmark-runs 1 \
-  --width 1280 \
-  --height 704 \
-  --max-new-tokens 512
-```
-
-结果：
-
-- `validated=True`
-- total latency：`325.888s`
-- client latency：`325.866s`
-- `first_step_error_m ≈ 0.0134`
-
-报告：
-
-- `/cache/ma-user/curious_vla_assets/logs/planning_latency_benchmark_npu_20260407_164257.json`
-
-`vllm` 命令：
-
-```bash
-BASE_URL=http://127.0.0.1:18002/v1 \
-./local/run_planning_latency_benchmark.sh \
-  --backend vllm \
-  --scene-path /cache/ma-user/curious_vla_assets/data/downloads/warmup_two_stage/openscene_meta_datas/086487f683be38e1b.pkl \
-  --warmup-runs 0 \
-  --benchmark-runs 1 \
-  --width 1280 \
-  --height 704 \
-  --max-tokens 512
-```
-
-结果：
-
-- `overall_valid=True`
-- request latency：`17.209s`
-- total scene time：`17.305s`
-- `first_step_error_m ≈ 0.0270`
-
-报告：
-
-- `/cache/ma-user/curious_vla_assets/logs/vllm_planning_latency_benchmark_20260407_165157.json`
-
-如果按总场景耗时对比：
-
-- `transformers`：`325.888s`
-- `vllm`：`17.305s`
-- 比值约为：`18.83x`
-
-如果按纯推理请求耗时近似理解，结论也接近：
-
-- `transformers client_total_sec`：`325.866s`
-- `vllm request_latency_sec`：`17.209s`
-- 比值约为：`18.94x`
-
-这组结果说明：
-
-- 在当前这台 Ascend 910B3 上，同一 scene、同一图像分辨率、同一输出长度上限下，`vllm-ascend` 的服务化响应时延明显低于本地 `transformers + torch_npu`
-- 两条路径都通过了当前各自的有效性门槛，所以这不是“一个快但无效”的对比
-- 但两者仍不是完全同口径：
-  - `transformers` 测的是 agent 进程内 planning latency
-  - `vllm` 测的是服务化 request / response latency
-
-因此更准确的表述应该是：
-
-- 当前可比实验下，`vllm-ascend` 的单场景规划响应速度大约比本地 `transformers` 快 `19x`
-- 但这个数字不能直接当成“模型内核本身快了 19x”
-
-### 10.12 `vllm` 下的 `trajectory-only` 正式 `5 + 50` benchmark
+### 10.11 `vllm` 下的 `trajectory-only` 正式 `5 + 50` benchmark
 
 在确认“只输出轨迹”这一思路值得测之后，2026 年 4 月 7 日又补跑了一组和 `10.10.1` 尽量同口径的正式 benchmark。
 
@@ -1563,8 +1426,8 @@ BASE_URL=http://127.0.0.1:18002/v1 \
 
 为了避免影响原有 full-planning benchmark，这次单独新增了两个脚本：
 
-- [run_vllm_trajectory_only_latency_benchmark.py](/home/ma-user/curious_vla/local/run_vllm_trajectory_only_latency_benchmark.py)
-- [run_vllm_trajectory_only_latency_benchmark.sh](/home/ma-user/curious_vla/local/run_vllm_trajectory_only_latency_benchmark.sh)
+- [run_vllm_trajectory_only_latency_benchmark.py](../local/run_vllm_trajectory_only_latency_benchmark.py)
+- [run_vllm_trajectory_only_latency_benchmark.sh](../local/run_vllm_trajectory_only_latency_benchmark.sh)
 
 它们复用了原先的：
 
@@ -1703,7 +1566,7 @@ request latency 统计：
 - 其中有 `37` 次已经产出了可解析、并且通过当前几何 sanity / reference gate 的轨迹
 - 真正把全部结果压成 `overall_valid=False` 的首要原因，是 strict contract 没有被遵守
 
-### 10.12.1 为什么说主要不是“轨迹和 GT 偏差很大”
+### 10.11.1 为什么说主要不是“轨迹和 GT 偏差很大”
 
 对成功解析出轨迹的 `37` 次样本，当前 warmup 数据里能比较到的 future reference 其实很接近。
 
@@ -1734,7 +1597,7 @@ request latency 统计：
 - 模型常常能给出几何上还不错的轨迹
 - 但没有稳定遵守新的 trajectory-only 输出协议
 
-### 10.12.2 真正的失败主要分成两类
+### 10.11.2 真正的失败主要分成两类
 
 第一类是 contract failure。
 
@@ -1788,7 +1651,7 @@ request latency 统计：
 
 - 轨迹已经生成出来了，但和 GT 偏差很大
 
-### 10.12.3 因此应该怎么理解这组 trajectory-only 结果
+### 10.11.3 因此应该怎么理解这组 trajectory-only 结果
 
 这组结果最准确的解读应该是：
 
@@ -1857,6 +1720,13 @@ request latency 统计：
 
 它们都重要，但不能把两组数字直接当成完全同口径结果比较。
 
+此外，文档里原先那种：
+
+- `warmup-runs=0`
+- `benchmark-runs=1`
+
+的单次直接 latency 对比，已经移除，不再作为正式结论引用。
+
 ## 12. 当前结论
 
 截至 2026 年 4 月 7 日，可以得出的结论是：
@@ -1865,7 +1735,6 @@ request latency 统计：
 - 当前机器上也已经能跑通 `vllm-ascend` 的 Curious-VLA 服务路径
 - `1280x704` 分辨率已经在真实 VL planning sample 上通过语义 gate
 - gate 通过后，可以继续做 `vllm` 服务化 latency benchmark
-- 在本次同场景、同分辨率、同 token 上限的直接对比里，`vllm-ascend` 的单场景规划响应大约比本地 `transformers` 快 `19x`
 - 在正式 `5 + 50` full-planning benchmark 里，当前 `vllm-ascend` 基线约为 `13.10s`
 - 在同口径的 `trajectory-only` 实验里，mean request latency 可以降到 `8.03s`
 - 但 trajectory-only 目前还没有通过 strict contract gate，所以它暂时只能作为“延迟潜力实验”，不能直接替代当前 full-planning 基线
@@ -1883,7 +1752,8 @@ request latency 统计：
 ### 13.1 model-only latency
 
 ```bash
-cd /home/ma-user/curious_vla
+PROJECT_ROOT=/path/to/curious_vla
+cd "$PROJECT_ROOT"
 ./local/run_latency_benchmark_npu.sh \
   --warmup-runs 1 \
   --benchmark-runs 2 \
@@ -1895,7 +1765,8 @@ cd /home/ma-user/curious_vla
 固定 `1280x704`：
 
 ```bash
-cd /home/ma-user/curious_vla
+PROJECT_ROOT=/path/to/curious_vla
+cd "$PROJECT_ROOT"
 ./local/run_planning_latency_benchmark_npu.sh \
   --warmup-runs 1 \
   --benchmark-runs 1 \
@@ -1905,7 +1776,8 @@ cd /home/ma-user/curious_vla
 原始分辨率：
 
 ```bash
-cd /home/ma-user/curious_vla
+PROJECT_ROOT=/path/to/curious_vla
+cd "$PROJECT_ROOT"
 ./local/run_planning_latency_benchmark_npu.sh \
   --scene-path /cache/ma-user/curious_vla_assets/data/downloads/warmup_two_stage/openscene_meta_datas/086487f683be38e1b.pkl \
   --warmup-runs 0 \
@@ -1937,7 +1809,8 @@ vllm serve /cache/ma-user/curious_vla_assets/models/Curious-VLA \
 ### 13.4 跑 `vllm` 语义 gate
 
 ```bash
-cd /home/ma-user/curious_vla
+PROJECT_ROOT=/path/to/curious_vla
+cd "$PROJECT_ROOT"
 BASE_URL=http://127.0.0.1:18002/v1 \
 WIDTH=1280 \
 HEIGHT=704 \
@@ -1951,7 +1824,8 @@ HEIGHT=704 \
 `vllm`：
 
 ```bash
-cd /home/ma-user/curious_vla
+PROJECT_ROOT=/path/to/curious_vla
+cd "$PROJECT_ROOT"
 BASE_URL=http://127.0.0.1:18002/v1 \
 ./local/run_planning_latency_benchmark.sh \
   --backend vllm \
@@ -1963,7 +1837,8 @@ BASE_URL=http://127.0.0.1:18002/v1 \
 `transformers`：
 
 ```bash
-cd /home/ma-user/curious_vla
+PROJECT_ROOT=/path/to/curious_vla
+cd "$PROJECT_ROOT"
 ./local/run_planning_latency_benchmark.sh \
   --backend transformers \
   --warmup-runs 1 \
@@ -2002,5 +1877,5 @@ cd /home/ma-user/curious_vla
 
 如果后续需要补充项目总体背景或 NAVSIM 官方说明，可进一步参考：
 
-- [README.md](/home/ma-user/curious_vla/README.md)
-- [README.md](/home/ma-user/curious_vla/navsim_eval/README.md)
+- [README.md](../README.md)
+- [README.md](../navsim_eval/README.md)
