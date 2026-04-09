@@ -197,6 +197,9 @@ class CuriousVLAClient(BaseModule):
                  model_name_or_path: str,
                  codebook_path: str = None,
                  server_urls=None,
+                 api_key: str = "0",
+                 max_tokens: int = 4096,
+                 default_temperature: float = 0.0,
                  **kwargs):
         super().__init__()
 
@@ -211,7 +214,7 @@ class CuriousVLAClient(BaseModule):
             try:
                 resp = http_client.get(f"{url}/models", timeout=2)
                 if resp.status_code == 200:
-                    self.clients.append(OpenAI(api_key="0", base_url=url, http_client=http_client))
+                    self.clients.append(OpenAI(api_key=api_key, base_url=url, http_client=http_client))
             except Exception:
                 pass
 
@@ -220,6 +223,9 @@ class CuriousVLAClient(BaseModule):
         logger.info(f"CuriousVLAClient initialized with {len(self.clients)} server(s).")
 
         self.model_name_or_path = model_name_or_path
+        self.api_key = api_key
+        self.max_tokens = max_tokens
+        self.default_temperature = default_temperature
         self.codebook_path = codebook_path
         if self.codebook_path:
             with open(self.codebook_path, 'r') as f:
@@ -234,9 +240,10 @@ class CuriousVLAClient(BaseModule):
                 use_yaw_parser=False,
                 use_action_parser=False,
                 parse_action_traj=False,
-                temperature=0.0,
+                temperature=None,
                 **kwargs):
         llm_messages = convert_to_openai_format(messages, dataset_dir=None)
+        request_temperature = self.default_temperature if temperature is None else temperature
 
         last_exc = None
 
@@ -246,8 +253,8 @@ class CuriousVLAClient(BaseModule):
                 result = client.chat.completions.create(
                     messages=llm_messages,
                     model=self.model_name_or_path,
-                    max_tokens=4096,
-                    temperature=temperature,
+                    max_tokens=self.max_tokens,
+                    temperature=request_temperature,
                 )
 
                 output_text = result.choices[0].message.content

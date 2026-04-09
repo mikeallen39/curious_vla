@@ -213,6 +213,15 @@ def create_scene_aggregators(
     full_score_df["two_frame_extended_comfort"] = np.nan
     full_score_df = full_score_df.set_index("token")
 
+    if not all_mappings:
+        logger.info(
+            "No adjacent original-frame mapping was found for this split. "
+            "Skipping two-frame extended comfort aggregation."
+        )
+        full_score_df.reset_index(inplace=True)
+        full_score_df = full_score_df.drop(columns=["ego_simulated_states"])
+        return full_score_df
+
     all_updates = []
 
     for now_frame, previous_frame in all_mappings.items():

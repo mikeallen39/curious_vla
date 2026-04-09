@@ -88,7 +88,14 @@ class NavsimCoTQwenAgent(AbstractAgent):
         return "Navsim_Qwen_Agent"
 
     def initialize(self) -> None:
-        self._client = CuriousVLAClient(model_name_or_path=self._config.model_name_or_path)
+        self._client = CuriousVLAClient(
+            model_name_or_path=self._config.model_name_or_path,
+            codebook_path=self._config.codebook_path,
+            server_urls=[self._config.api_base_url] if self._config.api_base_url else None,
+            api_key=self._config.api_key,
+            max_tokens=self._config.max_tokens,
+            default_temperature=self._config.temperature,
+        )
 
     def get_sensor_config(self) -> SensorConfig:
         """Dynamically request required sensor data based on cam_type."""
@@ -211,17 +218,20 @@ Output format (strict JSON, no extra keys, no markdown codeblock chars(```), no 
 
         token = scene.scene_metadata.initial_token
         log_file = os.path.join(self.log_path, "detailed_logs.jsonl") if self.log_path else None
-        image_np = agent_input.cameras[-1].cam_f0.image
+        current_cams = agent_input.cameras[-1] if agent_input.cameras else None
+        front_camera = current_cams.cam_f0 if current_cams is not None else None
+        image_np = front_camera.image if front_camera is not None else None
         if image_np is None:
-            warnings.warn(f"Step {self._step}: No image data found. Falling back.")
+            warnings.warn(
+                f"Step {self._step}: Front camera image is missing for token {token}. Falling back."
+            )
             return self._fallback_to_constant_velocity(agent_input)
 
         image_paths: Dict[str, str] = {}
         cameras_to_process = []
         if self.cam_type == 'single':
-            cameras_to_process.append(('cam_f0', agent_input.cameras[-1].cam_f0))
+            cameras_to_process.append(('cam_f0', front_camera))
         elif self.cam_type == 'multi_view':
-            current_cams = agent_input.cameras[-1]
             cameras_to_process.extend([
                 ('cam_f0', current_cams.cam_f0), ('cam_l0', current_cams.cam_l0),
                 ('cam_r0', current_cams.cam_r0), ('cam_l2', current_cams.cam_l2),
@@ -281,5 +291,6 @@ Output format (strict JSON, no extra keys, no markdown codeblock chars(```), no 
         return final_trajectory
 
     def __del__(self):
-        if hasattr(self, '_temp_dir') and os.path.exists(self._temp_dir):
-            shutil.rmtree(self._temp_dir)
+        temp_dir = getattr(self, "_temp_dir", None)
+        if isinstance(temp_dir, str) and os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
