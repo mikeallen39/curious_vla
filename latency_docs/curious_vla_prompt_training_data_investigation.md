@@ -453,7 +453,7 @@
 
 该样例的原始服务输出记录在：
 
-- [/home/ma-user/curious_vla/exp_root/curious_vla_warmup_eval_retry/2026.04.09.08.32.12/detailed_logs.jsonl](/home/ma-user/curious_vla/exp_root/curious_vla_warmup_eval_retry/2026.04.09.08.32.12/detailed_logs.jsonl)
+- `/home/ma-user/curious_vla/exp_root/curious_vla_warmup_eval_retry/2026.04.09.08.32.12/detailed_logs.jsonl`
 
 关键输出如下：
 
@@ -493,7 +493,7 @@ agent 对输出轨迹做反归一化后，最终 `trajectory_se2` 为：
 
 该样例的 benchmark 结果在：
 
-- [/home/ma-user/curious_vla/exp_root/curious_vla_warmup_eval_retry/2026.04.09.08.32.12/2026.04.09.09.15.22.csv](/home/ma-user/curious_vla/exp_root/curious_vla_warmup_eval_retry/2026.04.09.08.32.12/2026.04.09.09.15.22.csv)
+- `/home/ma-user/curious_vla/exp_root/curious_vla_warmup_eval_retry/2026.04.09.08.32.12/2026.04.09.09.15.22.csv`
 
 关键分数如下：
 

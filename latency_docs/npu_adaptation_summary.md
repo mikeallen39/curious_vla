@@ -611,7 +611,7 @@ export STATS_PATH=$PROJECT_ROOT/stats/trajectory_stats_train.json
 
 新增：
 
-- [local/local_env_npu.sh](../local/local_env_npu.sh)
+- [local/local_env_npu.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/local_env_npu.sh)
 
 作用：
 
@@ -628,8 +628,8 @@ export STATS_PATH=$PROJECT_ROOT/stats/trajectory_stats_train.json
 
 新增：
 
-- [local/run_latency_benchmark_npu.py](../local/run_latency_benchmark_npu.py)
-- [local/run_latency_benchmark_npu.sh](../local/run_latency_benchmark_npu.sh)
+- [local/run_latency_benchmark_npu.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_latency_benchmark_npu.py)
+- [local/run_latency_benchmark_npu.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_latency_benchmark_npu.sh)
 
 作用：
 
@@ -648,8 +648,8 @@ export STATS_PATH=$PROJECT_ROOT/stats/trajectory_stats_train.json
 
 新增：
 
-- [local/run_planning_latency_benchmark_npu.py](../local/run_planning_latency_benchmark_npu.py)
-- [local/run_planning_latency_benchmark_npu.sh](../local/run_planning_latency_benchmark_npu.sh)
+- [local/run_planning_latency_benchmark_npu.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_planning_latency_benchmark_npu.py)
+- [local/run_planning_latency_benchmark_npu.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_planning_latency_benchmark_npu.sh)
 
 这套脚本测的是更接近 end-to-end planning latency 的本地路径：
 
@@ -669,16 +669,16 @@ export STATS_PATH=$PROJECT_ROOT/stats/trajectory_stats_train.json
 
 新增：
 
-- [local/local_env_vllm_ascend.sh](../local/local_env_vllm_ascend.sh)
-- [local/run_vllm_semantic_validation.py](../local/run_vllm_semantic_validation.py)
-- [local/run_vllm_semantic_validation.sh](../local/run_vllm_semantic_validation.sh)
-- [local/run_vllm_planning_latency_benchmark.py](../local/run_vllm_planning_latency_benchmark.py)
-- [local/run_vllm_planning_latency_benchmark.sh](../local/run_vllm_planning_latency_benchmark.sh)
-- [local/run_planning_latency_benchmark.sh](../local/run_planning_latency_benchmark.sh)
+- [local/local_env_vllm_ascend.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/local_env_vllm_ascend.sh)
+- [local/run_vllm_semantic_validation.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_semantic_validation.py)
+- [local/run_vllm_semantic_validation.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_semantic_validation.sh)
+- [local/run_vllm_planning_latency_benchmark.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_planning_latency_benchmark.py)
+- [local/run_vllm_planning_latency_benchmark.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_planning_latency_benchmark.sh)
+- [local/run_planning_latency_benchmark.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_planning_latency_benchmark.sh)
 
 其中统一入口是：
 
-- [local/run_planning_latency_benchmark.sh](../local/run_planning_latency_benchmark.sh)
+- [local/run_planning_latency_benchmark.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_planning_latency_benchmark.sh)
 
 它支持：
 
@@ -691,10 +691,10 @@ export STATS_PATH=$PROJECT_ROOT/stats/trajectory_stats_train.json
 
 除了当前已经在用的 latency benchmark 脚本，仓库里还保留了一批更偏完整评测链路的历史脚本，例如：
 
-- [local/finalize_warmup_data.sh](../local/finalize_warmup_data.sh)
-- [local/run_metric_caching_warmup.sh](../local/run_metric_caching_warmup.sh)
-- [local/run_warmup_eval.sh](../local/run_warmup_eval.sh)
-- [local/wait_and_run_warmup_eval.sh](../local/wait_and_run_warmup_eval.sh)
+- [local/finalize_warmup_data.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/finalize_warmup_data.sh)
+- [local/run_metric_caching_warmup.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_metric_caching_warmup.sh)
+- [local/run_warmup_eval.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_warmup_eval.sh)
+- [local/wait_and_run_warmup_eval.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/wait_and_run_warmup_eval.sh)
 
 这些脚本代表的是更完整的 warmup evaluation 思路：
 
@@ -721,7 +721,7 @@ export STATS_PATH=$PROJECT_ROOT/stats/trajectory_stats_train.json
 
 对应脚本：
 
-- [local/run_latency_benchmark_npu.py](../local/run_latency_benchmark_npu.py)
+- [local/run_latency_benchmark_npu.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_latency_benchmark_npu.py)
 
 这条 benchmark 的输入不是完整场景，而是：
 
@@ -761,7 +761,7 @@ export STATS_PATH=$PROJECT_ROOT/stats/trajectory_stats_train.json
 
 对应脚本：
 
-- [local/run_planning_latency_benchmark_npu.py](../local/run_planning_latency_benchmark_npu.py)
+- [local/run_planning_latency_benchmark_npu.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_planning_latency_benchmark_npu.py)
 
 这条 benchmark 的输入来自真实 warmup scene：
 
@@ -803,7 +803,7 @@ export STATS_PATH=$PROJECT_ROOT/stats/trajectory_stats_train.json
 注意：
 
 - 模型输出的是归一化轨迹
-- agent 会再用 [stats/trajectory_stats_train.json](../stats/trajectory_stats_train.json) 做反归一化
+- agent 会再用 [stats/trajectory_stats_train.json](https://github.com/mikeallen39/curious_vla/blob/main/stats/trajectory_stats_train.json) 做反归一化
 - 最终返回的是 `Trajectory`
 
 因此报告中的：
@@ -923,7 +923,7 @@ planning benchmark 现在额外加入了结果合理性检查。
 
 参考：
 
-- [navsim_qwen_norm_agent_cot.py](../navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py#L155)
+- [navsim_qwen_norm_agent_cot.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py#L155)
 
 这说明在当前实现里：
 
@@ -977,7 +977,7 @@ planning benchmark 现在额外加入了结果合理性检查。
 
 参考：
 
-- [navsim_reward_text.py](../EasyR1/verl/utils/reward_score/navsim/navsim_reward_text.py#L73)
+- [navsim_reward_text.py](https://github.com/mikeallen39/curious_vla/blob/main/EasyR1/verl/utils/reward_score/navsim/navsim_reward_text.py#L73)
 
 不过，这种设计的代价也很明确：
 
@@ -1124,8 +1124,8 @@ vllm serve /cache/ma-user/curious_vla_assets/models/Curious-VLA \
 
 因此后来补了一套“基于真实 warmup 场景样本的基础结果合理性校验”，也就是这里说的轻量级语义 gate，入口是：
 
-- [local/run_vllm_semantic_validation.py](../local/run_vllm_semantic_validation.py)
-- [local/run_vllm_semantic_validation.sh](../local/run_vllm_semantic_validation.sh)
+- [local/run_vllm_semantic_validation.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_semantic_validation.py)
+- [local/run_vllm_semantic_validation.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_semantic_validation.sh)
 
 这套 gate 分三层：
 
@@ -1409,8 +1409,8 @@ request latency 统计：
 
 为了避免影响原有 full-planning benchmark，这次单独新增了两个脚本：
 
-- [run_vllm_trajectory_only_latency_benchmark.py](../local/run_vllm_trajectory_only_latency_benchmark.py)
-- [run_vllm_trajectory_only_latency_benchmark.sh](../local/run_vllm_trajectory_only_latency_benchmark.sh)
+- [run_vllm_trajectory_only_latency_benchmark.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_trajectory_only_latency_benchmark.py)
+- [run_vllm_trajectory_only_latency_benchmark.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_trajectory_only_latency_benchmark.sh)
 
 它们复用了原先的：
 
@@ -1860,5 +1860,5 @@ cd "$PROJECT_ROOT"
 
 如果后续需要补充项目总体背景或 NAVSIM 官方说明，可进一步参考：
 
-- [README.md](../README.md)
-- [README.md](../navsim_eval/README.md)
+- [README.md](https://github.com/mikeallen39/curious_vla/blob/main/README.md)
+- [README.md](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/README.md)

@@ -8,9 +8,9 @@
 
 如果你只想快速抓主线，先看这三处：
 
-1. [navsim_qwen_norm_agent_cot.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py)
-2. [curious_vla_client.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/curious_vla_client.py)
-3. [run_planning_latency_benchmark.sh](/home/ma-user/curious_vla/local/run_planning_latency_benchmark.sh)
+1. [navsim_qwen_norm_agent_cot.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py)
+2. [curious_vla_client.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/curious_vla_client.py)
+3. [run_planning_latency_benchmark.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_planning_latency_benchmark.sh)
 
 ## 1. 先用一句话理解这个仓库
 
@@ -56,9 +56,9 @@ curious_vla/
 
 优先看：
 
-- [navsim_qwen_norm_agent_cot.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py)
-- [curious_vla_client.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/curious_vla_client.py)
-- [curious_vla_config.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/curious_vla_config.py)
+- [navsim_qwen_norm_agent_cot.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py)
+- [curious_vla_client.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/curious_vla_client.py)
+- [curious_vla_config.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/curious_vla_config.py)
 
 它们分别负责：
 
@@ -80,9 +80,9 @@ curious_vla/
 
 优先看：
 
-- [run_qwen_pdm_score_evaluation.sh](/home/ma-user/curious_vla/navsim_eval/scripts/evaluation/run_qwen_pdm_score_evaluation.sh)
-- [run_pdm_score_one_stage.py](/home/ma-user/curious_vla/navsim_eval/navsim/planning/script/run_pdm_score_one_stage.py)
-- [navsim_qwen_norm_cot_baseline_agent.yaml](/home/ma-user/curious_vla/navsim_eval/navsim/planning/script/config/common/agent/navsim_qwen_norm_cot_baseline_agent.yaml)
+- [run_qwen_pdm_score_evaluation.sh](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/scripts/evaluation/run_qwen_pdm_score_evaluation.sh)
+- [run_pdm_score_one_stage.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/planning/script/run_pdm_score_one_stage.py)
+- [navsim_qwen_norm_cot_baseline_agent.yaml](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/planning/script/config/common/agent/navsim_qwen_norm_cot_baseline_agent.yaml)
 
 它们分别负责：
 
@@ -99,8 +99,8 @@ curious_vla/
 
 优先看：
 
-- [dataclasses.py](/home/ma-user/curious_vla/navsim_eval/navsim/common/dataclasses.py)
-- [dataloader.py](/home/ma-user/curious_vla/navsim_eval/navsim/common/dataloader.py)
+- [dataclasses.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/common/dataclasses.py)
+- [dataloader.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/common/dataloader.py)
 
 它们负责：
 
@@ -116,10 +116,10 @@ curious_vla/
 
 优先看：
 
-- [run_planning_latency_benchmark.sh](/home/ma-user/curious_vla/local/run_planning_latency_benchmark.sh)
-- [run_planning_latency_benchmark_npu.py](/home/ma-user/curious_vla/local/run_planning_latency_benchmark_npu.py)
-- [run_vllm_planning_latency_benchmark.py](/home/ma-user/curious_vla/local/run_vllm_planning_latency_benchmark.py)
-- [run_vllm_semantic_validation.py](/home/ma-user/curious_vla/local/run_vllm_semantic_validation.py)
+- [run_planning_latency_benchmark.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_planning_latency_benchmark.sh)
+- [run_planning_latency_benchmark_npu.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_planning_latency_benchmark_npu.py)
+- [run_vllm_planning_latency_benchmark.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_planning_latency_benchmark.py)
+- [run_vllm_semantic_validation.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_semantic_validation.py)
 
 它们分别负责：
 
@@ -142,10 +142,10 @@ curious_vla/
 
 优先看：
 
-- [docs/train_grpo.md](/home/ma-user/curious_vla/docs/train_grpo.md)
-- [EasyR1/README.md](/home/ma-user/curious_vla/EasyR1/README.md)
-- [config_vla.yaml](/home/ma-user/curious_vla/EasyR1/examples/config_vla.yaml)
-- [train_qwen_2_5_vl.sh](/home/ma-user/curious_vla/EasyR1/train_scripts/train_qwen_2_5_vl.sh)
+- [docs/train_grpo.md](https://github.com/mikeallen39/curious_vla/blob/main/docs/train_grpo.md)
+- [EasyR1/README.md](https://github.com/mikeallen39/curious_vla/blob/main/EasyR1/README.md)
+- [config_vla.yaml](https://github.com/mikeallen39/curious_vla/blob/main/EasyR1/examples/config_vla.yaml)
+- [train_qwen_2_5_vl.sh](https://github.com/mikeallen39/curious_vla/blob/main/EasyR1/train_scripts/train_qwen_2_5_vl.sh)
 
 训练相关的逻辑基本不在 `navsim_eval` 主链里，而是在 `EasyR1/`。
 
@@ -172,8 +172,8 @@ scene pickle / sensor blobs
 
 入口在：
 
-- [dataloader.py](/home/ma-user/curious_vla/navsim_eval/navsim/common/dataloader.py)
-- [dataclasses.py](/home/ma-user/curious_vla/navsim_eval/navsim/common/dataclasses.py)
+- [dataloader.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/common/dataloader.py)
+- [dataclasses.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/common/dataclasses.py)
 
 这层负责把：
 
@@ -196,7 +196,7 @@ scene pickle / sensor blobs
 
 入口在：
 
-- [navsim_qwen_norm_agent_cot.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py)
+- [navsim_qwen_norm_agent_cot.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py)
 
 这个文件是整个项目里最重要的单文件。
 
@@ -216,7 +216,7 @@ scene pickle / sensor blobs
 
 还在：
 
-- [navsim_qwen_norm_agent_cot.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py)
+- [navsim_qwen_norm_agent_cot.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py)
 
 当前 prompt 不是“只输出轨迹”，而是四段任务合在一起：
 
@@ -231,8 +231,8 @@ scene pickle / sensor blobs
 
 入口在：
 
-- [curious_vla_client.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/curious_vla_client.py)
-- [convert_chat_template.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/convert_chat_template.py)
+- [curious_vla_client.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/curious_vla_client.py)
+- [convert_chat_template.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/convert_chat_template.py)
 
 这里的职责是：
 
@@ -253,7 +253,7 @@ scene pickle / sensor blobs
 
 入口在：
 
-- [run_pdm_score_one_stage.py](/home/ma-user/curious_vla/navsim_eval/navsim/planning/script/run_pdm_score_one_stage.py)
+- [run_pdm_score_one_stage.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/planning/script/run_pdm_score_one_stage.py)
 
 这层做的事情是：
 
@@ -314,9 +314,9 @@ local/run_planning_latency_benchmark.sh
 
 ### 6.1 环境脚本
 
-- [local_env.sh](/home/ma-user/curious_vla/local/local_env.sh)
-- [local_env_npu.sh](/home/ma-user/curious_vla/local/local_env_npu.sh)
-- [local_env_vllm_ascend.sh](/home/ma-user/curious_vla/local/local_env_vllm_ascend.sh)
+- [local_env.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/local_env.sh)
+- [local_env_npu.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/local_env_npu.sh)
+- [local_env_vllm_ascend.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/local_env_vllm_ascend.sh)
 
 作用：
 
@@ -324,11 +324,11 @@ local/run_planning_latency_benchmark.sh
 
 ### 6.2 数据准备脚本
 
-- [download_model_loop.sh](/home/ma-user/curious_vla/local/download_model_loop.sh)
-- [finalize_warmup_data.sh](/home/ma-user/curious_vla/local/finalize_warmup_data.sh)
-- [finalize_navtest_data.sh](/home/ma-user/curious_vla/local/finalize_navtest_data.sh)
-- [run_metric_caching_warmup.sh](/home/ma-user/curious_vla/local/run_metric_caching_warmup.sh)
-- [run_metric_caching_navtest.sh](/home/ma-user/curious_vla/local/run_metric_caching_navtest.sh)
+- [download_model_loop.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/download_model_loop.sh)
+- [finalize_warmup_data.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/finalize_warmup_data.sh)
+- [finalize_navtest_data.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/finalize_navtest_data.sh)
+- [run_metric_caching_warmup.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_metric_caching_warmup.sh)
+- [run_metric_caching_navtest.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_metric_caching_navtest.sh)
 
 作用：
 
@@ -338,10 +338,10 @@ local/run_planning_latency_benchmark.sh
 
 ### 6.3 Benchmark 脚本
 
-- [run_latency_benchmark_npu.py](/home/ma-user/curious_vla/local/run_latency_benchmark_npu.py)
-- [run_planning_latency_benchmark_npu.py](/home/ma-user/curious_vla/local/run_planning_latency_benchmark_npu.py)
-- [run_vllm_planning_latency_benchmark.py](/home/ma-user/curious_vla/local/run_vllm_planning_latency_benchmark.py)
-- [run_vllm_trajectory_only_latency_benchmark.py](/home/ma-user/curious_vla/local/run_vllm_trajectory_only_latency_benchmark.py)
+- [run_latency_benchmark_npu.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_latency_benchmark_npu.py)
+- [run_planning_latency_benchmark_npu.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_planning_latency_benchmark_npu.py)
+- [run_vllm_planning_latency_benchmark.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_planning_latency_benchmark.py)
+- [run_vllm_trajectory_only_latency_benchmark.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_trajectory_only_latency_benchmark.py)
 
 作用：
 
@@ -349,11 +349,11 @@ local/run_planning_latency_benchmark.sh
 
 ### 6.4 运行包装脚本
 
-- [run_planning_latency_benchmark.sh](/home/ma-user/curious_vla/local/run_planning_latency_benchmark.sh)
-- [run_vllm_planning_latency_benchmark.sh](/home/ma-user/curious_vla/local/run_vllm_planning_latency_benchmark.sh)
-- [run_vllm_trajectory_only_latency_benchmark.sh](/home/ma-user/curious_vla/local/run_vllm_trajectory_only_latency_benchmark.sh)
-- [run_warmup_eval.sh](/home/ma-user/curious_vla/local/run_warmup_eval.sh)
-- [run_navtest_eval.sh](/home/ma-user/curious_vla/local/run_navtest_eval.sh)
+- [run_planning_latency_benchmark.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_planning_latency_benchmark.sh)
+- [run_vllm_planning_latency_benchmark.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_planning_latency_benchmark.sh)
+- [run_vllm_trajectory_only_latency_benchmark.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_trajectory_only_latency_benchmark.sh)
+- [run_warmup_eval.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_warmup_eval.sh)
+- [run_navtest_eval.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_navtest_eval.sh)
 
 作用：
 
@@ -370,10 +370,10 @@ local/run_planning_latency_benchmark.sh
 
 关键文件：
 
-- [navsim_qwen_norm_agent_cot.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py)
-- [curious_vla_client.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/curious_vla_client.py)
-- [curious_vla_config.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/curious_vla_config.py)
-- [convert_chat_template.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/convert_chat_template.py)
+- [navsim_qwen_norm_agent_cot.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py)
+- [curious_vla_client.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/curious_vla_client.py)
+- [curious_vla_config.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/curious_vla_config.py)
+- [convert_chat_template.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/convert_chat_template.py)
 
 ### 7.2 `navsim/common/`
 
@@ -381,8 +381,8 @@ local/run_planning_latency_benchmark.sh
 
 关键文件：
 
-- [dataclasses.py](/home/ma-user/curious_vla/navsim_eval/navsim/common/dataclasses.py)
-- [dataloader.py](/home/ma-user/curious_vla/navsim_eval/navsim/common/dataloader.py)
+- [dataclasses.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/common/dataclasses.py)
+- [dataloader.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/common/dataloader.py)
 
 ### 7.3 `navsim/planning/script/`
 
@@ -390,8 +390,8 @@ local/run_planning_latency_benchmark.sh
 
 关键文件：
 
-- [run_pdm_score_one_stage.py](/home/ma-user/curious_vla/navsim_eval/navsim/planning/script/run_pdm_score_one_stage.py)
-- [navsim_qwen_norm_cot_baseline_agent.yaml](/home/ma-user/curious_vla/navsim_eval/navsim/planning/script/config/common/agent/navsim_qwen_norm_cot_baseline_agent.yaml)
+- [run_pdm_score_one_stage.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/planning/script/run_pdm_score_one_stage.py)
+- [navsim_qwen_norm_cot_baseline_agent.yaml](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/planning/script/config/common/agent/navsim_qwen_norm_cot_baseline_agent.yaml)
 
 ### 7.4 `scripts/evaluation/`
 
@@ -399,7 +399,7 @@ local/run_planning_latency_benchmark.sh
 
 关键文件：
 
-- [run_qwen_pdm_score_evaluation.sh](/home/ma-user/curious_vla/navsim_eval/scripts/evaluation/run_qwen_pdm_score_evaluation.sh)
+- [run_qwen_pdm_score_evaluation.sh](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/scripts/evaluation/run_qwen_pdm_score_evaluation.sh)
 
 ## 8. `EasyR1` 目录怎么读
 
@@ -415,10 +415,10 @@ local/run_planning_latency_benchmark.sh
 
 建议顺序：
 
-1. [docs/train_grpo.md](/home/ma-user/curious_vla/docs/train_grpo.md)
-2. [EasyR1/README.md](/home/ma-user/curious_vla/EasyR1/README.md)
-3. [config_vla.yaml](/home/ma-user/curious_vla/EasyR1/examples/config_vla.yaml)
-4. [train_qwen_2_5_vl.sh](/home/ma-user/curious_vla/EasyR1/train_scripts/train_qwen_2_5_vl.sh)
+1. [docs/train_grpo.md](https://github.com/mikeallen39/curious_vla/blob/main/docs/train_grpo.md)
+2. [EasyR1/README.md](https://github.com/mikeallen39/curious_vla/blob/main/EasyR1/README.md)
+3. [config_vla.yaml](https://github.com/mikeallen39/curious_vla/blob/main/EasyR1/examples/config_vla.yaml)
+4. [train_qwen_2_5_vl.sh](https://github.com/mikeallen39/curious_vla/blob/main/EasyR1/train_scripts/train_qwen_2_5_vl.sh)
 
 你可以把 `EasyR1/` 理解成：
 
@@ -434,34 +434,34 @@ local/run_planning_latency_benchmark.sh
 
 建议按这个顺序读：
 
-1. [README.md](/home/ma-user/curious_vla/README.md)
-2. [deploy.md](/home/ma-user/curious_vla/docs/deploy.md)
-3. [navsim_qwen_norm_agent_cot.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py)
-4. [curious_vla_client.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/curious_vla_client.py)
-5. [dataclasses.py](/home/ma-user/curious_vla/navsim_eval/navsim/common/dataclasses.py)
-6. [run_qwen_pdm_score_evaluation.sh](/home/ma-user/curious_vla/navsim_eval/scripts/evaluation/run_qwen_pdm_score_evaluation.sh)
-7. [run_pdm_score_one_stage.py](/home/ma-user/curious_vla/navsim_eval/navsim/planning/script/run_pdm_score_one_stage.py)
+1. [README.md](https://github.com/mikeallen39/curious_vla/blob/main/README.md)
+2. [deploy.md](https://github.com/mikeallen39/curious_vla/blob/main/docs/deploy.md)
+3. [navsim_qwen_norm_agent_cot.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py)
+4. [curious_vla_client.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/curious_vla_client.py)
+5. [dataclasses.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/common/dataclasses.py)
+6. [run_qwen_pdm_score_evaluation.sh](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/scripts/evaluation/run_qwen_pdm_score_evaluation.sh)
+7. [run_pdm_score_one_stage.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/planning/script/run_pdm_score_one_stage.py)
 
 ### 9.2 如果你只关心 NPU latency
 
 建议按这个顺序读：
 
-1. [npu_adaptation_summary.md](/home/ma-user/curious_vla/latency_docs/npu_adaptation_summary.md)
-2. [curious_vla_910b_env_repro.md](/home/ma-user/curious_vla/latency_docs/curious_vla_910b_env_repro.md)
-3. [run_planning_latency_benchmark.sh](/home/ma-user/curious_vla/local/run_planning_latency_benchmark.sh)
-4. [run_planning_latency_benchmark_npu.py](/home/ma-user/curious_vla/local/run_planning_latency_benchmark_npu.py)
-5. [run_vllm_planning_latency_benchmark.py](/home/ma-user/curious_vla/local/run_vllm_planning_latency_benchmark.py)
-6. [run_vllm_semantic_validation.py](/home/ma-user/curious_vla/local/run_vllm_semantic_validation.py)
-7. [navsim_qwen_norm_agent_cot.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py)
+1. [npu_adaptation_summary.md](https://github.com/mikeallen39/curious_vla/blob/main/latency_docs/npu_adaptation_summary.md)
+2. [curious_vla_910b_env_repro.md](https://github.com/mikeallen39/curious_vla/blob/main/latency_docs/curious_vla_910b_env_repro.md)
+3. [run_planning_latency_benchmark.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_planning_latency_benchmark.sh)
+4. [run_planning_latency_benchmark_npu.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_planning_latency_benchmark_npu.py)
+5. [run_vllm_planning_latency_benchmark.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_planning_latency_benchmark.py)
+6. [run_vllm_semantic_validation.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_semantic_validation.py)
+7. [navsim_qwen_norm_agent_cot.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py)
 
 ### 9.3 如果你只关心训练
 
 建议按这个顺序读：
 
-1. [train_grpo.md](/home/ma-user/curious_vla/docs/train_grpo.md)
-2. [EasyR1/README.md](/home/ma-user/curious_vla/EasyR1/README.md)
-3. [config_vla.yaml](/home/ma-user/curious_vla/EasyR1/examples/config_vla.yaml)
-4. [train_qwen_2_5_vl.sh](/home/ma-user/curious_vla/EasyR1/train_scripts/train_qwen_2_5_vl.sh)
+1. [train_grpo.md](https://github.com/mikeallen39/curious_vla/blob/main/docs/train_grpo.md)
+2. [EasyR1/README.md](https://github.com/mikeallen39/curious_vla/blob/main/EasyR1/README.md)
+3. [config_vla.yaml](https://github.com/mikeallen39/curious_vla/blob/main/EasyR1/examples/config_vla.yaml)
+4. [train_qwen_2_5_vl.sh](https://github.com/mikeallen39/curious_vla/blob/main/EasyR1/train_scripts/train_qwen_2_5_vl.sh)
 
 ## 10. 你以后最常改哪些文件
 
@@ -471,30 +471,30 @@ local/run_planning_latency_benchmark.sh
 
 改：
 
-- [navsim_qwen_norm_agent_cot.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py)
-- [curious_vla_client.py](/home/ma-user/curious_vla/navsim_eval/navsim/agents/curious_vla/curious_vla_client.py)
+- [navsim_qwen_norm_agent_cot.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/navsim_qwen_norm_agent_cot.py)
+- [curious_vla_client.py](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/agents/curious_vla/curious_vla_client.py)
 
 ### 10.2 改 benchmark 口径
 
 改：
 
-- [run_planning_latency_benchmark_npu.py](/home/ma-user/curious_vla/local/run_planning_latency_benchmark_npu.py)
-- [run_vllm_planning_latency_benchmark.py](/home/ma-user/curious_vla/local/run_vllm_planning_latency_benchmark.py)
-- [run_vllm_trajectory_only_latency_benchmark.py](/home/ma-user/curious_vla/local/run_vllm_trajectory_only_latency_benchmark.py)
+- [run_planning_latency_benchmark_npu.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_planning_latency_benchmark_npu.py)
+- [run_vllm_planning_latency_benchmark.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_planning_latency_benchmark.py)
+- [run_vllm_trajectory_only_latency_benchmark.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_trajectory_only_latency_benchmark.py)
 
 ### 10.3 改环境与路径
 
 改：
 
-- [local_env_npu.sh](/home/ma-user/curious_vla/local/local_env_npu.sh)
-- [local_env_vllm_ascend.sh](/home/ma-user/curious_vla/local/local_env_vllm_ascend.sh)
+- [local_env_npu.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/local_env_npu.sh)
+- [local_env_vllm_ascend.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/local_env_vllm_ascend.sh)
 
 ### 10.4 改官方评测配置
 
 改：
 
-- [run_qwen_pdm_score_evaluation.sh](/home/ma-user/curious_vla/navsim_eval/scripts/evaluation/run_qwen_pdm_score_evaluation.sh)
-- [navsim_qwen_norm_cot_baseline_agent.yaml](/home/ma-user/curious_vla/navsim_eval/navsim/planning/script/config/common/agent/navsim_qwen_norm_cot_baseline_agent.yaml)
+- [run_qwen_pdm_score_evaluation.sh](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/scripts/evaluation/run_qwen_pdm_score_evaluation.sh)
+- [navsim_qwen_norm_cot_baseline_agent.yaml](https://github.com/mikeallen39/curious_vla/blob/main/navsim_eval/navsim/planning/script/config/common/agent/navsim_qwen_norm_cot_baseline_agent.yaml)
 
 ## 11. 最后给一个简化判断
 

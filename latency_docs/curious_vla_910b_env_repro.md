@@ -141,8 +141,8 @@ ln -sfn /cache/ma-user/curious_vla_assets/data/downloads/test_navsim_logs/test \
 
 推荐把下面两段分别保存成你自己的局部脚本，或直接沿用仓库里的：
 
-- [local/local_env_npu.sh](/home/ma-user/curious_vla/local/local_env_npu.sh)
-- [local/local_env_vllm_ascend.sh](/home/ma-user/curious_vla/local/local_env_vllm_ascend.sh)
+- [local/local_env_npu.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/local_env_npu.sh)
+- [local/local_env_vllm_ascend.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/local_env_vllm_ascend.sh)
 
 本地 `transformers` 环境变量：
 
@@ -505,24 +505,24 @@ export ASCEND_RT_VISIBLE_DEVICES=0
 
 环境变量脚本：
 
-- [local/local_env_npu.sh](/home/ma-user/curious_vla/local/local_env_npu.sh)
-- [local/local_env_vllm_ascend.sh](/home/ma-user/curious_vla/local/local_env_vllm_ascend.sh)
+- [local/local_env_npu.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/local_env_npu.sh)
+- [local/local_env_vllm_ascend.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/local_env_vllm_ascend.sh)
 
 主要总报告：
 
-- [npu_adaptation_summary.md](/home/ma-user/curious_vla/latency_docs/npu_adaptation_summary.md)
+- [npu_adaptation_summary.md](https://github.com/mikeallen39/curious_vla/blob/main/latency_docs/npu_adaptation_summary.md)
 
 本地 `transformers` benchmark：
 
-- [run_planning_latency_benchmark_npu.py](/home/ma-user/curious_vla/local/run_planning_latency_benchmark_npu.py)
-- [run_planning_latency_benchmark_npu.sh](/home/ma-user/curious_vla/local/run_planning_latency_benchmark_npu.sh)
+- [run_planning_latency_benchmark_npu.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_planning_latency_benchmark_npu.py)
+- [run_planning_latency_benchmark_npu.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_planning_latency_benchmark_npu.sh)
 
 `vllm-ascend` benchmark：
 
-- [run_vllm_planning_latency_benchmark.py](/home/ma-user/curious_vla/local/run_vllm_planning_latency_benchmark.py)
-- [run_vllm_planning_latency_benchmark.sh](/home/ma-user/curious_vla/local/run_vllm_planning_latency_benchmark.sh)
-- [run_vllm_semantic_validation.py](/home/ma-user/curious_vla/local/run_vllm_semantic_validation.py)
-- [run_vllm_semantic_validation.sh](/home/ma-user/curious_vla/local/run_vllm_semantic_validation.sh)
+- [run_vllm_planning_latency_benchmark.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_planning_latency_benchmark.py)
+- [run_vllm_planning_latency_benchmark.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_planning_latency_benchmark.sh)
+- [run_vllm_semantic_validation.py](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_semantic_validation.py)
+- [run_vllm_semantic_validation.sh](https://github.com/mikeallen39/curious_vla/blob/main/local/run_vllm_semantic_validation.sh)
 
 ## 11. 最短复现结论
 
