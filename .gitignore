@@ -99,6 +99,7 @@ data_pipeline/*.jsonl
 # Temporary files
 *.tmp
 *.temp
+kernel_meta/
 
 # OS files
 .DS_Store

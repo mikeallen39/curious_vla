@@ -7,6 +7,7 @@ sleep 5
 : "${model_name_or_path:="YOUR_MODEL_PATH"}"
 : "${template:=qwen3_vl}"
 
+: "${max_model_len:=3072}"
 : "${max_num_seqs:=256}"
 : "${max_num_batched_tokens:=98304}"
 
@@ -39,6 +40,8 @@ for i in $(seq 0 $((num_instances-1))); do
 
   CUDA_VISIBLE_DEVICES=$devices \
   vllm serve $model_name_or_path \
+    --max-model-len $max_model_len \
+    --limit-mm-per-prompt.image 6 \
     --limit-mm-per-prompt.video 0 \
     --mm-processor-kwargs "${mm_processor_kwargs}" \
     --trust-remote-code \

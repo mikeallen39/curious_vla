@@ -100,7 +100,17 @@ class NavsimCoTQwenAgent(AbstractAgent):
     def get_sensor_config(self) -> SensorConfig:
         """Dynamically request required sensor data based on cam_type."""
         if self.cam_type == 'multi_view':
-            return SensorConfig.build_all_sensors(include=[3])
+            return SensorConfig(
+                cam_f0=[3],
+                cam_l0=[3],
+                cam_l1=False,
+                cam_l2=[3],
+                cam_r0=[3],
+                cam_r1=False,
+                cam_r2=[3],
+                cam_b0=[3],
+                lidar_pc=False,
+            )
         elif self.cam_type == 'cont':
             return SensorConfig(cam_f0=True, cam_l0=False, cam_l1=False, cam_l2=False,
                                 cam_r0=False, cam_r1=False, cam_r2=False, cam_b0=False, lidar_pc=False)
@@ -130,6 +140,37 @@ class NavsimCoTQwenAgent(AbstractAgent):
         command_str = [nav_commands[i] for i, v in enumerate(high_command_one_hot) if v == 1]
         command_str = command_str[0] if command_str else "unknown"
         history_trajectory = ", ".join(status_lines)
+
+        if self.cam_type == 'multi_view':
+            final_content = f"""Suppose you are driving. Predict the ego vehicle's optimal normalized future trajectory.
+Input:
+- 6 synchronized surround-view images from the current timestep. The image order is:
+  1. front
+  2. front-left
+  3. front-right
+  4. rear-left
+  5. rear-right
+  6. rear
+- Current high-level intent: {command_str}
+- 1.5-second past trajectory (3 steps at 2 Hz): {history_trajectory}
+Each trajectory point format: (x:float, y:float, heading:float)
+
+Task:
+- Predict the optimal 4-second normalized future trajectory of the ego vehicle.
+- Output exactly 8 future points at 2 Hz.
+- Use this format only:
+[(x1, y1, h1), (x2, y2, h2), (x3, y3, h3), (x4, y4, h4), (x5, y5, h5), (x6, y6, h6), (x7, y7, h7), (x8, y8, h8)]
+- Do not output JSON.
+- Do not output explanations.
+- Do not output any extra text."""
+            return {
+                "images": list(image_paths.values()),
+                "messages": [
+                    {"role": "system", "content": QWEN_SYSTEM_MESSAGE},
+                    {"role": "user", "content": final_content}
+                ]
+            }
+
         Q1 = f"""Suppose you are driving. Let's complete the following tasks step by step.
 Input:
 - 1 frame of front-view image collected from the ego-vehicle at the present timestep
