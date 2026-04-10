@@ -217,6 +217,120 @@ export STATS_PATH='/home/ma-user/curious_vla/stats/trajectory_stats_train.json'
 
 但论文 / README 里展示的高分结果，不一定就是这个 split。
 
+### 4.3 `LLaMA-Factory` 与直接 `vLLM` 的正式 benchmark 对比
+
+在修复 `LLaMA-Factory` 的 `vllm` 推理路径后，又用同样的 `warmup_two_stage` 官方 benchmark 口径补跑了一次正式评测，用来判断：
+
+- `LLaMA-Factory` 路径会不会拉低分数
+- 它和直接连 `vllm-ascend` 服务的结果是否一致
+
+本次 `LLaMA-Factory` 路径对应的实验名是：
+
+- `curious_vla_warmup_eval_lf`
+
+结果文件：
+
+- `../exp_root/curious_vla_warmup_eval_lf/2026.04.09.15.00.56/2026.04.09.15.50.02.csv`
+
+日志文件：
+
+- `/cache/ma-user/curious_vla_assets/logs/warmup_pdm_eval_lf_20260409_150041.log`
+
+最终结果如下：
+
+- `PDMS`: `0.3738928365083659`
+- `EPDMS(V2)`: `0.3225864923840719`
+- 成功场景数：`220 / 220`
+- 失败场景数：`0`
+
+和前面的直接 `vllm` 基线相比：
+
+- 最终 `PDMS` 完全一致
+- 最终 `EPDMS(V2)` 完全一致
+- 成功 / 失败场景数完全一致
+- 两份 CSV 去掉导出的 `Unnamed: 0` 索引列后，如果按 `token` 排序，场景级结果逐列完全一致
+
+这说明：
+
+- 当前修复后的 `LLaMA-Factory` 路径没有带来额外精度损失
+- 之前 `LLaMA-Factory` 路径表现异常，根因确实是模板 / stop token 配置问题，而不是模型本身在该路径下天然退化
+
+耗时上两者仍有差异：
+
+- 直接 `vllm`：`2590s`，约 `11.77s / scene`
+- `LLaMA-Factory`：`2946s`，约 `13.39s / scene`
+- `LLaMA-Factory` 比直接 `vllm` 慢 `356s`，约 `13.75%`
+
+因此当前可以下结论：
+
+- 质量上，`LLaMA-Factory` 与直接 `vllm` 已对齐
+- 吞吐上，`LLaMA-Factory` 仍略慢一些
+
+### 4.4 为什么当前指标相比论文低很多
+
+先说当前已经能确认的结论：
+
+- 不是 `LLaMA-Factory` 把分数拉低了
+
+原因很直接：
+
+- 修复后的 `LLaMA-Factory` 与直接 `vllm` 在当前 `warmup_two_stage` 官方 benchmark 上得到的 `PDMS / EPDMS(V2)` 完全一致
+
+所以，“当前分数明显低于论文”这个现象，主因不在 `LLaMA-Factory`。
+
+更可能的原因主要有下面几类。
+
+第一类，是 benchmark 口径本身没有对齐。
+
+- 当前本地跑的是 `warmup_two_stage`
+- NAVSIM 官方文档把它定义为“小型公开 warmup 测试集”
+- 它的目标是帮助检查提交流程和 warmup leaderboard 对齐
+- NAVSIM v2 更标准的本地 two-stage 测试 split，其实是 `navhard_two_stage`
+- 最终 challenge / leaderboard 的正式口径则是 `private_test_hard_two_stage + submission.pkl`
+
+这意味着：
+
+- 现在这次 `0.3739 / 0.3226` 的结果，只能说明模型在 `warmup_two_stage` 本地官方链路上的表现
+- 不能直接把它当成论文主表结果来一一对齐
+
+第二类，是“本地 one-stage 评测导出”与“论文 / 榜单最终口径”之间可能存在流程差异。
+
+当前实际跑的是：
+
+- 官方脚本 `../navsim_eval/navsim/planning/script/run_pdm_score_one_stage.py`
+- `worker=sequential`
+- 当前 Curious-VLA agent 的单前视图推理链路
+
+它已经足够作为正式本地 benchmark，但仍不等价于：
+
+- 论文可能使用的完整 leaderboard 提交流程
+- 或者论文里更大、更正式 split 上的统计结果
+
+第三类，是当前 agent 实现仍带有本地稳态运行所需的 fallback 行为。
+
+例如：
+
+- 缺失 `cam_f0` 时，会直接回退到 constant-velocity fallback
+- 当前这版 benchmark 为了保证 `220 / 220` 跑通，还跳过了缺失映射时的 `two_frame_extended_comfort` 聚合收尾
+
+这些改动是为了让当前公开 `warmup_two_stage` 在 NPU 上稳定跑通，不代表与论文作者当时的完整评测环境完全同构。
+
+第四类，是部署参数和推理实现口径也未必完全与论文一致。
+
+例如当前本地使用的是：
+
+- `vllm-ascend`
+- `max_tokens=512`
+- 单实例、顺序 worker
+
+这些设置已经足够复现当前公开 warmup benchmark，但是否与论文作者提交 leaderboard 时的完整部署配置完全相同，目前没有直接证据。
+
+因此，更稳妥的判断应该是：
+
+- 当前结果偏低，最主要的问题是“对比口径没完全对齐”，而不是“模型在 `LLaMA-Factory` 上掉点”
+- 如果要更接近论文里的数字，下一步应优先复现 `navhard_two_stage`，或者进一步走 `submission.pkl` 的 leaderboard 流程
+- 在没有把 split、提交流程、评测脚本和部署配置统一之前，直接拿这次 `warmup_two_stage` 分数和论文主结果做强对比，结论并不牢靠
+
 ## 5. 能不能用论文中的数据
 
 可以分三种情况看。
@@ -275,4 +389,3 @@ export STATS_PATH='/home/ma-user/curious_vla/stats/trajectory_stats_train.json'
 如果只是想先获得一个“比 warmup 更正式、但仍可本地复现”的结果，那么下一步最值得做的是：
 
 - 跑 `navhard_two_stage`
-
