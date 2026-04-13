@@ -20,9 +20,9 @@
 - [x] Paper release
 - [x] Model weights on HuggingFace
 - [x] Prompt Construction and Evaluation code
-- [ ] Quick Start of environment(sft + rl + eval unified)(before Apr. 10)
-- [ ] Training data (IL stage)(before Apr. 10)
-- [ ] Model Weight after SFT (IL stage)(before Apr. 10)
+- [ ] Quick Start of environment(sft + rl + eval unified)
+- [x] Training data (IL stage)
+- [x] Model Weight after SFT (IL stage)
 - [x] Training code (RL stage: Basic reward function api server + SDR)
 - [x] Training code (RL stage: ADAS)
 
@@ -30,7 +30,7 @@ Most will be released before late March, 2026.
 
 For obvious reasons about a certain confernce, our recent schedule has been significantly affected 🤷, and the remaining components will be fully released by April 10.
 
-[4.10 Update]: (Uploading...) Data & Model in IL stage will be uploaded in https://huggingface.co/MashiroLn/Curious-VLA-dev.
+[4.13 Update]: (Updating...) Data & Model in IL stage have ben uploaded in https://huggingface.co/MashiroLn/Curious-VLA-dev. Quick Start doc is comming soon.
 
 - [ ] Whole Data Engine
 - [ ] Lightning-fast(15x throughput) reward function api server, and faster evaluation
