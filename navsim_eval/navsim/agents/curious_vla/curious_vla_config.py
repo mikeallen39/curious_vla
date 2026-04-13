@@ -29,5 +29,8 @@ class CuriousVlaConfig:
     max_tokens: int = 3072
     temperature: float = 0.0
 
+    # If False, missing front-view images are treated as a hard data error.
+    allow_missing_front_camera_fallback: bool = False
+
     # Path to save detailed logs. If None or empty, no logs are saved.
     log_path: str = None

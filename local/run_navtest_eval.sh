@@ -17,8 +17,8 @@ python "$NAVSIM_DEVKIT_ROOT/navsim/planning/script/run_pdm_score_one_stage.py" \
   agent="$AGENT_NAME" \
   agent.config.model_name_or_path="$MODEL_NAME_OR_PATH" \
   navsim_log_path="$TEST_LOG_PATH" \
-  original_sensor_path="$WARMUP_SENSOR_PATH" \
-  synthetic_sensor_path="$WARMUP_SENSOR_PATH" \
+  original_sensor_path="$ORIGINAL_SENSOR_PATH" \
+  synthetic_sensor_path="$SYNTHETIC_SENSOR_PATH" \
   synthetic_scenes_path="$WARMUP_SYNTHETIC_SCENES_PATH" \
   metric_cache_path="$CACHE_PATH" \
   worker=single_machine_thread_pool \

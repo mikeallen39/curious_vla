@@ -263,10 +263,15 @@ Output format (strict JSON, no extra keys, no markdown codeblock chars(```), no 
         front_camera = current_cams.cam_f0 if current_cams is not None else None
         image_np = front_camera.image if front_camera is not None else None
         if image_np is None:
-            warnings.warn(
-                f"Step {self._step}: Front camera image is missing for token {token}. Falling back."
+            scene_kind = "synthetic" if scene.scene_metadata.corresponding_original_scene is not None else "original"
+            message = (
+                f"Step {self._step}: Front camera image is missing for token {token} "
+                f"(log={scene.scene_metadata.log_name}, scene_type={scene_kind})."
             )
-            return self._fallback_to_constant_velocity(agent_input)
+            if self._config.allow_missing_front_camera_fallback:
+                warnings.warn(f"{message} Falling back.")
+                return self._fallback_to_constant_velocity(agent_input)
+            raise RuntimeError(message)
 
         image_paths: Dict[str, str] = {}
         cameras_to_process = []
