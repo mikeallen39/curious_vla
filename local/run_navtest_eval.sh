@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source /mnt/42_store/zxz/HUAWEI/VLA/curious_vla/local/local_env.sh
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/local_env.sh"
 source "$CONDA_ROOT/etc/profile.d/conda.sh"
 conda activate "$NAVSIM_ENV_PREFIX"
 

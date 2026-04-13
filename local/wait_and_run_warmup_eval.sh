@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source /mnt/42_store/zxz/HUAWEI/VLA/curious_vla/local/local_env.sh
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/local_env.sh"
 
 : "${API_BASE:=http://127.0.0.1:8192}"
 : "${CACHE_CHECK_INTERVAL:=15}"

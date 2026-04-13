@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source /mnt/42_store/zxz/HUAWEI/VLA/curious_vla/local/local_env.sh
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/local_env.sh"
 
 DOWNLOAD_ROOT="$DATA_ROOT/downloads"
 

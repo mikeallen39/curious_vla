@@ -99,6 +99,16 @@
 
 如果后面要在别的服务器复现，建议先整理成一组环境变量，再去拼命令：
 
+仓库里现在也提供了一个可直接参考的模板：
+
+- [local_env_override.example.sh](/mnt/42_store/zxz/HUAWEI/VLA/curious_vla/local/local_env_override.example.sh)
+
+推荐做法是：
+
+- 复制成未入库的 `local/local_env_override.sh`
+- 只在这台机器上填本机路径
+- 脚本通过 `local/local_env.sh` 自动加载它
+
 ```bash
 export PROJECT_ROOT=/path/to/curious_vla
 export DATA_ROOT=/path/to/navsim_data
