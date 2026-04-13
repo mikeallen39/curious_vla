@@ -11,40 +11,124 @@
 
 这份文档记录的是 2026-04-13 这一轮已经成功完成的 GPU smoke，可作为后续 NPU 对照样例。
 
-## 2. 测试环境
+## 2. 固定实验语义
 
-项目根目录：
+下面这些内容和“换不换服务器”无关，属于这次样例本身的固定语义：
 
-- `/mnt/42_store/zxz/HUAWEI/VLA/curious_vla`
+- `train_test_split=warmup_two_stage`
+- 只限制 `1` 个 log：
+  - `2021.09.16.19.27.01_veh-45_01749_03230`
+- `max_scenes=1`
+- `include_synthetic_scenes=false`
+- agent 使用：
+  - `navsim_qwen_norm_cot_baseline_agent`
+- 推理参数：
+  - `max_tokens=512`
+  - `temperature=0.0`
+- 服务接口协议：
+  - OpenAI-compatible `/v1/chat/completions`
+- 服务模板：
+  - `qwen2_vl`
+- 服务 backend：
+  - `huggingface`
 
-数据根目录：
+## 3. 跨机器可变参数
 
-- `/data/zxz/HUAWEI/VLA/navsim_data`
+下面这些参数在不同服务器上通常都不一样，迁移时应单独整理，不要直接照抄本文里的绝对路径。
 
-模型目录：
+建议至少把这些参数抽成一张配置表：
 
-- `/data/zxz/condaenv/curious_vla/models/Curious-VLA`
+- `PROJECT_ROOT`
+  - 仓库根目录
+- `DATA_ROOT`
+  - NAVSIM 数据根目录
+- `MODEL_DIR`
+  - `Curious-VLA` 模型目录
+- `NAVSIM_ENV_PREFIX`
+  - 评测 conda 环境
+- `LF_ENV_PREFIX`
+  - 服务 conda 环境
+- `CONDA_ROOT`
+  - conda 安装根目录
+- `NAVSIM_DEVKIT_ROOT`
+  - 通常是 `$PROJECT_ROOT/navsim_eval`
+- `NAVSIM_EXP_ROOT`
+  - 实验输出根目录
+- `NAVSIM_LOG_PATH`
+  - `test` metadata 路径
+- `ORIGINAL_SENSOR_PATH`
+  - `test` 原始相机路径
+- `SYNTHETIC_SENSOR_PATH`
+  - `warmup_two_stage/sensor_blobs`
+- `SYNTHETIC_SCENES_PATH`
+  - `warmup_two_stage/synthetic_scene_pickles`
+- `GPU_ID`
+  - 本轮服务实际占用 GPU
+- `API_HOST`
+  - 服务监听地址
+- `API_PORT`
+  - 服务端口
+- `EXPERIMENT_NAME`
+  - 评测实验名
+- `METRIC_CACHE_PATH`
+  - metric cache 输出目录
 
-评测环境：
+### 3.1 本次机器上的实值
 
-- `/data/zxz/condaenv/curious_vla/navsim`
+这次 2026-04-13 GPU smoke 在当前机器上的实值如下：
 
-服务环境：
+- `PROJECT_ROOT=/mnt/42_store/zxz/HUAWEI/VLA/curious_vla`
+- `DATA_ROOT=/data/zxz/HUAWEI/VLA/navsim_data`
+- `MODEL_DIR=/data/zxz/condaenv/curious_vla/models/Curious-VLA`
+- `NAVSIM_ENV_PREFIX=/data/zxz/condaenv/curious_vla/navsim`
+- `LF_ENV_PREFIX=/data/zxz/condaenv/curious_vla/lf`
+- `CONDA_ROOT=/home/zxz/anaconda3`
+- `NAVSIM_DEVKIT_ROOT=/mnt/42_store/zxz/HUAWEI/VLA/curious_vla/navsim_eval`
+- `NAVSIM_EXP_ROOT=/mnt/42_store/zxz/HUAWEI/VLA/curious_vla/exp_root`
+- `NAVSIM_LOG_PATH=/data/zxz/HUAWEI/VLA/navsim_data/navsim_logs/test`
+- `ORIGINAL_SENSOR_PATH=/data/zxz/HUAWEI/VLA/navsim_data/downloads/openscene-v1.1/sensor_blobs/test`
+- `SYNTHETIC_SENSOR_PATH=/data/zxz/HUAWEI/VLA/navsim_data/warmup_two_stage/sensor_blobs`
+- `SYNTHETIC_SCENES_PATH=/data/zxz/HUAWEI/VLA/navsim_data/warmup_two_stage/synthetic_scene_pickles`
+- `GPU_ID=3`
+- `API_HOST=127.0.0.1`
+- `API_PORT=8192`
+- `EXPERIMENT_NAME=warmup_gpu_watch_20260413_075952`
+- `METRIC_CACHE_PATH=/mnt/42_store/zxz/HUAWEI/VLA/curious_vla/exp_root/metric_cache_warmup_gpu_watch_20260413_075952`
 
-- `/data/zxz/condaenv/curious_vla/lf`
+### 3.2 推荐先整理成环境变量
 
-这次实际使用的是：
+如果后面要在别的服务器复现，建议先整理成一组环境变量，再去拼命令：
 
-- GPU `3`
-- 端口 `8192`
-- `llamafactory-cli api`
-- `infer_backend=huggingface`
+```bash
+export PROJECT_ROOT=/path/to/curious_vla
+export DATA_ROOT=/path/to/navsim_data
+export MODEL_DIR=/path/to/Curious-VLA
+export NAVSIM_ENV_PREFIX=/path/to/conda/env/navsim
+export LF_ENV_PREFIX=/path/to/conda/env/lf
+export CONDA_ROOT=/path/to/conda
 
-## 3. 这次样例里两个容易混淆的 token
+export NAVSIM_DEVKIT_ROOT=$PROJECT_ROOT/navsim_eval
+export NAVSIM_EXP_ROOT=$PROJECT_ROOT/exp_root
+
+export NAVSIM_LOG_PATH=$DATA_ROOT/navsim_logs/test
+export ORIGINAL_SENSOR_PATH=$DATA_ROOT/downloads/openscene-v1.1/sensor_blobs/test
+export SYNTHETIC_SENSOR_PATH=$DATA_ROOT/warmup_two_stage/sensor_blobs
+export SYNTHETIC_SCENES_PATH=$DATA_ROOT/warmup_two_stage/synthetic_scene_pickles
+
+export GPU_ID=0
+export API_HOST=127.0.0.1
+export API_PORT=8192
+
+export TARGET_LOG=2021.09.16.19.27.01_veh-45_01749_03230
+export EXPERIMENT_NAME=warmup_gpu_smoke_repro
+export METRIC_CACHE_PATH=$NAVSIM_EXP_ROOT/metric_cache_warmup_gpu_smoke_repro
+```
+
+## 4. 这次样例里两个容易混淆的 token
 
 这轮实验里要区分两个 token。
 
-### 3.1 探针 token
+### 4.1 探针 token
 
 我用来确认“这个 log 的 original front camera 已经下载到本地”的探针 token 是：
 
@@ -59,7 +143,7 @@
 
 它只用于“确认 original 图像已经存在”，不是最后 CSV 里被评分的 token。
 
-### 3.2 真正被评分的 token
+### 4.2 真正被评分的 token
 
 这轮 warmup split 实际被 evaluator 选中并评分的 token 是：
 
@@ -76,7 +160,7 @@
 
 - `19e90f2757b25f38`
 
-## 4. 实际使用的数据路径
+## 5. 实际使用的数据路径
 
 这轮 one-scene eval 使用的路径是：
 
@@ -91,7 +175,7 @@
 - 所以关键是 `original_sensor_path` 不能指到 `warmup_two_stage/sensor_blobs`
 - 必须指向 `test` 的原始相机数据
 
-## 5. 实际使用的评测约束
+## 6. 实际使用的评测约束
 
 这轮 smoke 只评 1 个 log，且只评 original scene：
 
@@ -101,21 +185,21 @@
 - `train_test_split.scene_filter.include_synthetic_scenes=false`
 - `worker=sequential`
 
-## 6. 这次 GPU 服务的启动方式
+## 7. 这次 GPU 服务的启动方式
 
 这轮服务是 watcher 自动起的，本质上等价于：
 
 ```bash
-source /home/zxz/anaconda3/etc/profile.d/conda.sh
-conda activate /data/zxz/condaenv/curious_vla/lf
-cd /mnt/42_store/zxz/HUAWEI/VLA/curious_vla/navsim_eval
+source $CONDA_ROOT/etc/profile.d/conda.sh
+conda activate $LF_ENV_PREFIX
+cd $NAVSIM_DEVKIT_ROOT
 
-CUDA_VISIBLE_DEVICES=3 \
-API_HOST=127.0.0.1 \
-API_PORT=8192 \
+CUDA_VISIBLE_DEVICES=$GPU_ID \
+API_HOST=$API_HOST \
+API_PORT=$API_PORT \
 API_VERBOSE=0 \
 llamafactory-cli api \
-  --model_name_or_path /data/zxz/condaenv/curious_vla/models/Curious-VLA \
+  --model_name_or_path $MODEL_DIR \
   --template qwen2_vl \
   --infer_backend huggingface \
   --image_max_pixels 262144 \
@@ -126,24 +210,24 @@ llamafactory-cli api \
 
 - [warmup_gpu_watch_server_20260413_075936.log](/mnt/42_store/zxz/HUAWEI/VLA/curious_vla/exp_root/warmup_gpu_watch_server_20260413_075936.log)
 
-## 7. 这次实际执行的评测流程
+## 8. 这次实际执行的评测流程
 
-### 7.1 metric cache
+### 8.1 metric cache
 
 这轮先构建了单场景 metric cache：
 
 ```bash
-/data/zxz/condaenv/curious_vla/navsim/bin/python \
-  /mnt/42_store/zxz/HUAWEI/VLA/curious_vla/navsim_eval/navsim/planning/script/run_metric_caching.py \
+$NAVSIM_ENV_PREFIX/bin/python \
+  $NAVSIM_DEVKIT_ROOT/navsim/planning/script/run_metric_caching.py \
   train_test_split=warmup_two_stage \
-  "train_test_split.scene_filter.log_names=['2021.09.16.19.27.01_veh-45_01749_03230']" \
+  "train_test_split.scene_filter.log_names=['$TARGET_LOG']" \
   train_test_split.scene_filter.max_scenes=1 \
   train_test_split.scene_filter.include_synthetic_scenes=false \
-  navsim_log_path=/data/zxz/HUAWEI/VLA/navsim_data/navsim_logs/test \
-  original_sensor_path=/data/zxz/HUAWEI/VLA/navsim_data/downloads/openscene-v1.1/sensor_blobs/test \
-  synthetic_sensor_path=/data/zxz/HUAWEI/VLA/navsim_data/warmup_two_stage/sensor_blobs \
-  synthetic_scenes_path=/data/zxz/HUAWEI/VLA/navsim_data/warmup_two_stage/synthetic_scene_pickles \
-  metric_cache_path=/mnt/42_store/zxz/HUAWEI/VLA/curious_vla/exp_root/metric_cache_warmup_gpu_watch_20260413_075952 \
+  navsim_log_path=$NAVSIM_LOG_PATH \
+  original_sensor_path=$ORIGINAL_SENSOR_PATH \
+  synthetic_sensor_path=$SYNTHETIC_SENSOR_PATH \
+  synthetic_scenes_path=$SYNTHETIC_SCENES_PATH \
+  metric_cache_path=$METRIC_CACHE_PATH \
   worker=sequential
 ```
 
@@ -164,27 +248,35 @@ metric cache 目录：
 随后执行 one-scene eval：
 
 ```bash
-/data/zxz/condaenv/curious_vla/navsim/bin/python \
-  /mnt/42_store/zxz/HUAWEI/VLA/curious_vla/navsim_eval/navsim/planning/script/run_pdm_score_one_stage.py \
+$NAVSIM_ENV_PREFIX/bin/python \
+  $NAVSIM_DEVKIT_ROOT/navsim/planning/script/run_pdm_score_one_stage.py \
   train_test_split=warmup_two_stage \
-  "train_test_split.scene_filter.log_names=['2021.09.16.19.27.01_veh-45_01749_03230']" \
+  "train_test_split.scene_filter.log_names=['$TARGET_LOG']" \
   train_test_split.scene_filter.max_scenes=1 \
   train_test_split.scene_filter.include_synthetic_scenes=false \
-  experiment_name=warmup_gpu_watch_20260413_075952 \
+  experiment_name=$EXPERIMENT_NAME \
   agent=navsim_qwen_norm_cot_baseline_agent \
-  "agent.config.model_name_or_path=/data/zxz/condaenv/curious_vla/models/Curious-VLA" \
-  "+agent.config.api_base_url=http://127.0.0.1:8192/v1" \
+  "agent.config.model_name_or_path=$MODEL_DIR" \
+  "+agent.config.api_base_url=http://$API_HOST:$API_PORT/v1" \
   "+agent.config.max_tokens=512" \
   +agent.config.temperature=0.0 \
-  navsim_log_path=/data/zxz/HUAWEI/VLA/navsim_data/navsim_logs/test \
-  original_sensor_path=/data/zxz/HUAWEI/VLA/navsim_data/downloads/openscene-v1.1/sensor_blobs/test \
-  synthetic_sensor_path=/data/zxz/HUAWEI/VLA/navsim_data/warmup_two_stage/sensor_blobs \
-  synthetic_scenes_path=/data/zxz/HUAWEI/VLA/navsim_data/warmup_two_stage/synthetic_scene_pickles \
-  metric_cache_path=/mnt/42_store/zxz/HUAWEI/VLA/curious_vla/exp_root/metric_cache_warmup_gpu_watch_20260413_075952 \
+  navsim_log_path=$NAVSIM_LOG_PATH \
+  original_sensor_path=$ORIGINAL_SENSOR_PATH \
+  synthetic_sensor_path=$SYNTHETIC_SENSOR_PATH \
+  synthetic_scenes_path=$SYNTHETIC_SCENES_PATH \
+  metric_cache_path=$METRIC_CACHE_PATH \
   worker=sequential
 ```
 
-## 8. 运行结果
+### 8.1 这台机器上的实值版命令
+
+如果只是在当前这台机器上复现，可以直接把上面的环境变量替换为以下实值：
+
+- `TARGET_LOG=2021.09.16.19.27.01_veh-45_01749_03230`
+- `EXPERIMENT_NAME=warmup_gpu_watch_20260413_075952`
+- `METRIC_CACHE_PATH=/mnt/42_store/zxz/HUAWEI/VLA/curious_vla/exp_root/metric_cache_warmup_gpu_watch_20260413_075952`
+
+## 9. 运行结果
 
 这轮最终成功完成：
 
@@ -217,7 +309,7 @@ metric cache 目录：
 - [detailed_logs.jsonl](/mnt/42_store/zxz/HUAWEI/VLA/curious_vla/exp_root/warmup_gpu_watch_20260413_075952/2026.04.13.08.00.03/detailed_logs.jsonl)
 - [warmup_gpu_watch_20260413_075936.log](/data/zxz/HUAWEI/VLA/navsim_data/logs/warmup_gpu_watch_20260413_075936.log)
 
-## 9. 为什么我认为这次不是 fallback 假分
+## 10. 为什么我认为这次不是 fallback 假分
 
 这次和之前那轮不一样，判断依据比较直接：
 
@@ -236,7 +328,7 @@ metric cache 目录：
 
 而不是 constant velocity fallback 伪造出来的结果。
 
-## 10. 这次模型的原始输出摘要
+## 11. 这次模型的原始输出摘要
 
 `detailed_logs.jsonl` 里保存的模型输出大意是：
 
@@ -250,7 +342,7 @@ metric cache 目录：
 - 起点约 `(3.03, -0.01, -0.0065)`
 - 终点约 `(15.89, -0.28, -0.0398)`
 
-## 11. 时间开销
+## 12. 时间开销
 
 从 `run_pdm_score_one_stage.log` 看：
 
@@ -272,7 +364,7 @@ metric cache 目录：
 - parser
 - scoring
 
-## 12. 给 NPU 侧复现时的建议
+## 13. 给 NPU 侧复现时的建议
 
 如果你想在 NPU 上尽量对齐这次 GPU 样例，建议优先保证下面几点一致：
 
@@ -303,7 +395,7 @@ NPU 侧真正要对齐的不是探针 token `51ad5207706e5602`，而是这轮被
 
 - 它不是这次 CSV 对应的评分 token
 
-## 13. 这次测试的局限
+## 14. 这次测试的局限
 
 这轮只能说明：
 
@@ -319,4 +411,3 @@ NPU 侧真正要对齐的不是探针 token `51ad5207706e5602`，而是这轮被
 
 - 一个“可复现实验样例”
 - 一个“排查 original scene / fallback / 服务健康度”的基准样例
-
