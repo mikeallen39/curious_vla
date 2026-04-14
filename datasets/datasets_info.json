@@ -1,0 +1,17 @@
+{
+  "QA_sft_navsim_train_cot": {
+    "file_name": "QA_sft_navsim_train_cot_1view_103k_baseline_norm.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "conversations",
+      "images": "image",
+      "system": "system"
+    },
+    "tags": {
+      "role_tag": "from",
+      "content_tag": "value",
+      "user_tag": "human",
+      "assistant_tag": "gpt"
+    }
+  }
+}

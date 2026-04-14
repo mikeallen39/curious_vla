@@ -25,7 +25,7 @@ def main(
     output_csv: str | None = None,
     p: float = 0.1,
     n_rollout: int = 8,
-    group_size: int = 16,
+    group_size: int = 32,
     std_threshold: float = 0.01,
     conf: float = 0.1,
 ) -> tuple[str, str, int]:
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     parser.add_argument("--output_csv", type=str, default=None)
     parser.add_argument("--p", type=float, default=0.1)
     parser.add_argument("--n_rollout", type=int, default=8)
-    parser.add_argument("--group_size", type=int, default=16)
+    parser.add_argument("--group_size", type=int, default=32)
     parser.add_argument("--std_threshold", type=float, default=0.01)
     parser.add_argument("--conf", type=float, default=0.1)
     args = parser.parse_args()

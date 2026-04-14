@@ -13,27 +13,26 @@
 
 ## News 
 
-- 🎉 **CuriousVLA has been recommended to CVPR'26 Findings.** CuriousVLA is very suitable to serve as MLLM auto-regression-based SoTA baseline to compare. 
+- 🎉 **CuriousVLA has been accepted to CVPR'26 Findings.** CuriousVLA can serve as a strong MLLM auto-regressive driving baseline.
 
-## TODOs
+## Release
 
 - [x] Paper release
 - [x] Model weights on HuggingFace
 - [x] Prompt Construction and Evaluation code
-- [ ] Quick Start of environment(sft + rl + eval unified)(before Apr. 10)
-- [ ] Training data (IL stage)(before Apr. 10)
-- [ ] Model Weight after SFT (IL stage)(before Apr. 10)
+- [x] Quick Start of environment (SFT + RL + deploy unified; NAVSIM kept independent)
+- [x] Training data (IL stage). See [HuggingFace](https://huggingface.co/MashiroLn/Curious-VLA-dev).
+- [x] SFT-stage model weights. See [HuggingFace](https://huggingface.co/MashiroLn/Curious-VLA-dev).
 - [x] Training code (RL stage: Basic reward function api server + SDR)
 - [x] Training code (RL stage: ADAS)
+- [x] Released GRPO filtered tokens for quick start(for the model `curious_vla_qwen2_5_vl_3b_sft_stage2`).
 
-Most will be released before late March, 2026. 
-
-For obvious reasons about a certain confernce, our recent schedule has been significantly affected 🤷, and the remaining components will be fully released by April 10.
+The items listed above are now available.
 
 - [ ] Whole Data Engine
 - [ ] Lightning-fast(15x throughput) reward function api server, and faster evaluation
 
-Above will be released future.
+The remaining items will be released in future updates.
 
 ## Overview
 
@@ -70,21 +69,59 @@ Performance on the **Navsim** benchmark:
 
 ## Getting Started
 
+Start with the unified quick start guide:
+
+- [docs/quick_start.md](docs/quick_start.md)
+
 ### Evaluation
 
-You need to prepare **2 python venv**: `lf`(Llamafactory for deploy, py3.11), `navsim`(for evaluation, py3.9)
-
-Details and Commands See [docs/deploy.md](docs/deploy.md)
+See [docs/deploy.md](docs/deploy.md).
 
 ### Training
 
-#### 1. SFT: comming soon
+#### 1. Imitation Learning(SFT)
 
-#### 2. RL:
+See [docs/train_sft.md](docs/train_sft.md).
 
-You need to prepare **2 python venv** for `EasyR1`, `navsim`.
+#### 2. Reinforcement Learning(GRPO)
 
-Details and Commands See [docs/train_grpo.md](docs/train_grpo.md).
+See [docs/train_grpo.md](docs/train_grpo.md).
+
+The RL parquet data is not stored in this repository and is ignored by git. Download it from:
+
+- https://huggingface.co/datasets/MashiroLn/Curious-VLA
+
+Place it under:
+
+```text
+EasyR1/data/QA_navtrain_poutine_style_full/data/
+├── train.parquet
+└── test.parquet
+```
+
+For example:
+
+```bash
+cd /path/to/curious_vla/EasyR1/data
+huggingface-cli download MashiroLn/Curious-VLA --repo-type dataset --local-dir QA_navtrain_poutine_style_full
+```
+
+Released token-filter file for direct GRPO training:
+
+- `token_filters/curious_vla_qwen2_5_vl_3b_sft_stage2_adas1x_6k.txt`
+
+This file was recovered from the early filtered training subset `navsim_normtrajtext_cot_filter_dynamic_6k/data/train.parquet`. It contains one token per line and can be used directly as `data.token_filter_file` in GRPO training.
+
+Recommended:
+
+- use the released SFT checkpoint `curious_vla_qwen2_5_vl_3b_sft_stage2`
+- use the released filter file above
+- start GRPO directly without rerunning ADAS
+
+Optional:
+
+- rerun ADAS yourself
+- replace the default `ADAS_FILTER_FILE` with your own ADAS output
 <!-- 
 
 ### Training

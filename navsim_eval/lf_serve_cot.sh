@@ -1,26 +1,51 @@
 #!/bin/bash
+set -euo pipefail
 source "$(conda info --base)/etc/profile.d/conda.sh"
-conda activate lf
+conda activate curious
 
-clear
-sleep 5
+if ! command -v llamafactory-cli >/dev/null 2>&1; then
+  echo "Error: 'llamafactory-cli' was not found in the 'curious' env."
+  echo "Install LLaMA-Factory into that env first."
+  exit 1
+fi
 
 : "${model_name_or_path=YOUR_MODEL_PATH}"
 : "${template:=qwen2_vl}"
+: "${TOTAL_GPUS:=8}"
 
 # Usage: ./lf_serve_cot.sh <num_instances>
 # e.g.:  ./lf_serve_cot.sh 4   # start 4 instances
 #        ./lf_serve_cot.sh 8   # start 8 instances
 
-num_instances=$1
-start_port=8192
-
-if [ -z "$num_instances" ]; then
-  echo "please provide num_instances: $0 4"
+if [ $# -lt 1 ]; then
+  echo "Usage: $0 <num_instances>"
   exit 1
 fi
 
-cards_per_instance=$((8 / num_instances))
+num_instances=$1
+start_port=8192
+
+if [ "$num_instances" -le 0 ]; then
+  echo "num_instances must be positive."
+  exit 1
+fi
+
+if [ "$TOTAL_GPUS" -lt "$num_instances" ]; then
+  echo "TOTAL_GPUS ($TOTAL_GPUS) must be >= num_instances ($num_instances)."
+  exit 1
+fi
+
+if [ $((TOTAL_GPUS % num_instances)) -ne 0 ]; then
+  echo "TOTAL_GPUS ($TOTAL_GPUS) must be divisible by num_instances ($num_instances)."
+  exit 1
+fi
+
+cards_per_instance=$((TOTAL_GPUS / num_instances))
+
+cleanup() {
+  jobs -p | xargs -r kill 2>/dev/null || true
+}
+trap cleanup EXIT INT TERM
 
 for i in $(seq 0 $((num_instances-1))); do
   start_card=$((i * cards_per_instance))
@@ -41,6 +66,8 @@ for i in $(seq 0 $((num_instances-1))); do
     --vllm_maxlen 65536 \
     --trust_remote_code true &
 done
+
+wait
 
 # --vllm_maxlen 16384
 # Controls vllm kvcache max tokens (input+output). At current resolution,

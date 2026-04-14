@@ -1,161 +1,130 @@
 # How to Train Curious-VLA with GRPO?
 
-Curious-VLA uses a RL training pipeline built on [EasyR1](../EasyR1/README.md):
+Curious-VLA uses a RL training pipeline built on [EasyR1](../EasyR1/README.md). Use `curious` and `navsim` conda envs (created by `bash scripts/setup_env.sh`).
 
-Stages 2-3 form one **outer loop iteration**. Repeat for multiple rounds to progressively improve the policy.
+There are two ways to start GRPO:
 
-> Throughout this guide, `$PROJECT_ROOT` refers to `/path/to/curious_vla`
+- Recommended: use the released SFT checkpoint `curious_vla_qwen2_5_vl_3b_sft_stage2` together with the released filter-token file, and start GRPO directly
+- Optional: rerun ADAS yourself, then use your own ADAS output as `ADAS_FILTER_FILE`
 
-## 0. Preparation
-
-### Environment
-
-Create the training environment in directory `curious_vla/EasyR1`:
-
-```bash
-conda create -n verl python=3.10
-conda activate verl
-cd EasyR1
-pip install -e .
-```
-
-(Optional) Install flash-attention for faster training:
-
-```bash
-pip install flash-attn --no-build-isolation
-```
-
-More details: [EasyR1 README](../EasyR1/README.md)
+## Data Preparation
 
 ### Model Weights (after SFT)
 
-Place the SFT model under `EasyR1/checkpoints/sft/`:
-
-```
-EasyR1/checkpoints/sft/
-└── your_model_name/
-    ├── config.json
-    ├── model-00001-of-00002.safetensors
-    ├── ...
-    └── tokenizer.json
-```
-
-**Coming soon.** Or train your own SFT model first.
+Place the SFT model under `EasyR1/checkpoints/sft/`, or train your own (see [train_sft.md](train_sft.md)).
 
 ### Training Data
 
-The training data should be placed at `EasyR1/data/QA_navtrain_poutine_style_full` with the following structure:
+**(Recommended)** Download pre-built parquet data:
 
+```bash
+cd /path/to/curious_vla/EasyR1/data
+huggingface-cli download MashiroLn/Curious-VLA --repo-type dataset --local-dir QA_navtrain_poutine_style_full
 ```
+
+Expected layout after download:
+
+```text
 EasyR1/data/QA_navtrain_poutine_style_full/
 └── data/
     ├── train.parquet
     └── test.parquet
 ```
 
-Additionally, link (or copy) your NAVSIM raw data into `EasyR1/navsim/` so that image paths in the parquet can be resolved:
+**(Optional)** Build your own data:
 
 ```bash
-ln -s /path/to/your/navsim_data $PROJECT_ROOT/EasyR1/navsim
+cd /path/to/curious_vla/EasyR1
+bash scripts/run_navsim_data.sh
 ```
 
-Expected structure (symlink is fine):
-
-```
-EasyR1/navsim/
-├── trainval_logs/trainval/
-│   ├── 2021.05.12.19.36.12_veh-35_00005_00204.pkl
-│   └── ...
-└── trainval_sensor_blobs/trainval/
-    ├── 2021.05.12.19.36.12_veh-35_00005_00204/
-    │   └── CAM_F0/*.jpg
-    └── ...
-```
-
-Each parquet file contains 3 columns:
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `images` | list[str] | Relative paths to front-view camera images (e.g., `navsim/trainval_sensor_blobs/.../*.jpg`) |
-| `problem` | str | CoT prompt with `<image>` placeholder |
-| `answer` | dict | `{"gt": [], "token": str}` — ground truth and scene token(gt is useless in RLVR) |
-
-- **(Recommended)** Download pre-built parquet data:
-
-  ```bash
-  cd $PROJECT_ROOT/EasyR1/data
-  huggingface-cli download MashiroLn/Curious-VLA --repo-type dataset --local-dir QA_navtrain_poutine_style_full
-  ```
-
-- **(Optional)** Build your own data from ShareGPT4V `.json`:
-
-  ```bash
-  cd $PROJECT_ROOT/EasyR1
-  bash scripts/run_navsim_data.sh
-  ```
-
-### NAVSIM Reward Function API Server
-
-The reward server scores trajectories during RL training. See [deploy.md](./deploy.md) and [navsim_eval/README.md](../navsim_eval/README.md) to prepare the `navsim` environment.
-
-Steps:
-- Build conda env
-- Download data
-- **Set env variables**
-- **Build metric cache**:
-
-## 1. Start Reward Function API Server
+Link NAVSIM raw data so that image paths in the parquet can be resolved. Reuse the same repo-local data link described in [train_sft.md](train_sft.md):
 
 ```bash
-tmux new -s scorer
-cd $PROJECT_ROOT/navsim_eval
-bash gunicorn_server.sh
+cd /path/to/curious_vla
+ln -s /path/to/navsim_workspace/dataset datasets/navsim
+ln -s ../datasets/navsim EasyR1/navsim
 ```
 
-## 2. ADAS Inference & Filter
+### Reward Server
 
-**Step 1**: Run parallel inference with the current model checkpoint, scoring each rollout with the NAVSIM reward server:
+The reward server scores trajectories during RL training. It is **automatically started** by `scripts/run_adas.sh` and `scripts/run_rl_train.sh`.
+
+Before first use, build the `navtrain` metric cache:
 
 ```bash
-cd $PROJECT_ROOT
-bash EasyR1/scripts/adas/run_adas_infer.sh
+DATA_ROOT="$PROJECT_ROOT/datasets/navsim"
+TRAIN_TEST_SPLIT="navtrain"
 ```
 
-Key parameters in the script:
-- `MODEL_PATH`: path to the current model checkpoint
-- `data_path`: path to the training parquet data
-- `worker.rollout.n`: number of rollouts per sample (e.g., 32)
-
-
-**Step 2**: Filter dynamic samples.
+Then run:
 
 ```bash
-cd $PROJECT_ROOT
-bash EasyR1/scripts/adas/run_adas_filter.sh
+bash navsim_eval/scripts/evaluation/run_metric_caching.sh
 ```
 
-Key parameters:
-- `INFER_FOLDER`: path to the inference output from Step 1
-- `-p`: score percentile threshold for filtering
-- `--conf`: confidence threshold
+## ADAS Inference & Filter
 
-This outputs a token filter file used in the next training step.
+This section is optional. Only run it if you want to rebuild the ADAS filter yourself.
 
-## 3. GRPO Training
+Edit `scripts/run_adas.sh` and fill in:
 
-Train the model with GRPO on the filtered data:
+- `MODEL_PATH`
+- `EXP_NAME`
+- `NUM_GPUS` if needed
+
+Keep `DATA_ROOT="$PROJECT_ROOT/datasets/navsim"` unless you also change the repo-local data link.
+
+Run ADAS with the SFT checkpoint:
 
 ```bash
-cd $PROJECT_ROOT/EasyR1
-bash train_scripts/train_qwen_2_5_vl.sh
+bash scripts/run_adas.sh
+```
+
+This starts the reward server, runs ADAS inference and filtering, and outputs a token filter file at `EasyR1/checkpoints/adas/<exp_name>/group_stats_filtered_0.1.txt`.
+
+Released token-filter file for direct GRPO training:
+
+```text
+token_filters/curious_vla_qwen2_5_vl_3b_sft_stage2_adas1x_6k.txt
+```
+
+This file was recovered from the early filtered training subset `navsim_normtrajtext_cot_filter_dynamic_6k/data/train.parquet`. The format is one token per line.
+
+## GRPO Training
+
+Edit `scripts/run_rl_train.sh` and fill in:
+
+- `MODEL_PATH`
+- `EXP_NAME`
+- `NUM_GPUS` if needed
+
+Recommended:
+
+- use the released SFT checkpoint `curious_vla_qwen2_5_vl_3b_sft_stage2`
+- keep the default `ADAS_FILTER_FILE` in `scripts/run_rl_train.sh`
+- run GRPO directly
+
+Optional:
+
+- rerun ADAS first
+- replace `ADAS_FILTER_FILE` with your own ADAS output
+
+```bash
+bash scripts/run_rl_train.sh
 ```
 
 Refer to `EasyR1/examples/config_vla.yaml` for the full configuration.
 
-## 4. Outer Loop
+## Outer Loop
 
-Repeat **Step 2 (ADAS) + Step 3 (GRPO)** with the updated checkpoint from each round.
+Repeat **ADAS + GRPO** with the updated checkpoint from each round.
 
-Tips for resuming training across rounds:
+Tips for resuming:
+- Uncomment `RESUME_FROM` in both scripts and point it to the previous checkpoint
 - Delete `dataloader.pt` in the resume checkpoint directory if the data filter file has changed
-- Reset the `epoch` to allocate more training steps; otherwise the trainer may send `SIGTERM`.
+- Reset the `epoch` to allocate more training steps; otherwise the trainer may send `SIGTERM`
+
+## Next Steps
+
+The GRPO model can be directly evaluated. See [deploy.md](deploy.md).
