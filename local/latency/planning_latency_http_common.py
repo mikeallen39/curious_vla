@@ -78,6 +78,18 @@ def percentile(values: list[float], q: float) -> float | None:
     return float(np.percentile(np.asarray(values, dtype=np.float64), q))
 
 
+def resolve_model_name(args: argparse.Namespace) -> str:
+    model_name = getattr(args, "model_name", None)
+    if model_name:
+        return str(model_name)
+
+    model = getattr(args, "model", None)
+    if model:
+        return str(model)
+
+    raise AttributeError("Neither 'model_name' nor 'model' is present in benchmark args.")
+
+
 def format_number(n: float, decimal_places: int = 2) -> str | float:
     if abs(round(n, decimal_places)) <= 1e-2:
         return 0.0
@@ -673,7 +685,7 @@ def run_text_planning_control(
         response_json, latency_sec = post_chat_completion(
             session=session,
             base_url=args.base_url,
-            model_name=args.model_name,
+            model_name=resolve_model_name(args),
             messages=messages,
             max_tokens=args.max_tokens,
             temperature=args.temperature,
@@ -744,7 +756,7 @@ def run_scene_validation(
         response_json, latency_sec = post_chat_completion(
             session=session,
             base_url=args.base_url,
-            model_name=args.model_name,
+            model_name=resolve_model_name(args),
             messages=messages,
             max_tokens=args.max_tokens,
             temperature=args.temperature,
