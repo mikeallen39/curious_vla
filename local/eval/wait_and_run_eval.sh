@@ -2,16 +2,18 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/local_env.sh"
+LOCAL_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+source "$LOCAL_ROOT/local_env.sh"
 
+: "${RUN_SPLIT:=warmup_two_stage}"
 : "${API_BASE:=http://127.0.0.1:8192}"
 : "${CACHE_CHECK_INTERVAL:=15}"
 : "${API_CHECK_INTERVAL:=10}"
-: "${EXPERIMENT_PREFIX:=warmup_smoke}"
+: "${EXPERIMENT_PREFIX:=${RUN_SPLIT}_smoke}"
 : "${MODEL_NAME_OR_PATH:=$CURIOUS_VLA_MODEL_DIR}"
 
 cache_pattern='[r]un_metric_caching.py'
-cache_split_pattern="train_test_split=${TRAIN_TEST_SPLIT}"
+cache_split_pattern="train_test_split=${RUN_SPLIT}"
 
 while pgrep -af "$cache_pattern" | grep -F "$cache_split_pattern" >/dev/null; do
   sleep "$CACHE_CHECK_INTERVAL"
@@ -24,5 +26,6 @@ done
 EXPERIMENT_NAME="${EXPERIMENT_PREFIX}_$(date +%Y%m%d_%H%M%S)"
 export EXPERIMENT_NAME
 export MODEL_NAME_OR_PATH
+export RUN_SPLIT
 
-exec /mnt/42_store/zxz/HUAWEI/VLA/curious_vla/local/run_warmup_eval.sh
+exec "$SCRIPT_DIR/run_eval.sh"

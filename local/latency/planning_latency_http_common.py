@@ -7,10 +7,7 @@ import json
 import math
 import pickle
 import re
-import statistics
-import sys
 import time
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -19,7 +16,7 @@ import requests
 from PIL import Image
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 STATS_PATH = PROJECT_ROOT / "stats" / "trajectory_stats_train.json"
 
 CRITICAL_OBJECT_KEYS = [
@@ -57,50 +54,6 @@ INTENT_TO_ALLOWED_META_COMMANDS = {
     "turn right": {"right_turn", "yield", "lane_follow"},
     "unknown": COMMAND_CHOICES,
 }
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Validate semantic reasonableness of Curious-VLA responses through a running vLLM OpenAI-compatible API."
-    )
-    parser.add_argument("--base-url", required=True, help="OpenAI-compatible base URL, e.g. http://127.0.0.1:18000/v1")
-    parser.add_argument("--model-name", required=True, help="Model name/path exposed by the server.")
-    parser.add_argument("--warmup-root", required=True, help="Warmup dataset root.")
-    parser.add_argument(
-        "--scene-dir",
-        default=None,
-        help="Directory containing scene pickle files. Defaults to <warmup-root>/openscene_meta_datas.",
-    )
-    parser.add_argument("--scene-path", action="append", default=None, help="Optional explicit scene pickle path. Can be repeated.")
-    parser.add_argument("--scene-limit", type=int, default=3, help="Number of scenes to validate when scene-path is not provided.")
-    parser.add_argument("--scene-offset", type=int, default=0, help="Start offset into the sorted scene list.")
-    parser.add_argument("--max-tokens", type=int, default=512, help="Max completion tokens per request.")
-    parser.add_argument("--temperature", type=float, default=0.0, help="Sampling temperature.")
-    parser.add_argument("--timeout-sec", type=float, default=300.0, help="HTTP timeout per request.")
-    parser.add_argument("--output-json", default=None, help="Optional report path.")
-    parser.add_argument("--save-raw-dir", default=None, help="Optional directory to save raw responses.")
-    parser.add_argument("--run-text-control", action="store_true", help="Run an additional text-only schema control request.")
-    parser.add_argument(
-        "--run-text-planning-control",
-        action="store_true",
-        help="Run an additional text-only planning-style control request without image input.",
-    )
-    parser.add_argument("--min-pass-rate", type=float, default=1.0, help="Minimum VL pass rate required before recommending this backend for latency gating.")
-    parser.add_argument("--max-step-distance-m", type=float, default=12.0, help="Max allowed distance between consecutive denormalized trajectory points.")
-    parser.add_argument("--max-final-displacement-m", type=float, default=40.0, help="Max allowed final displacement magnitude.")
-    parser.add_argument("--max-abs-yaw-rad", type=float, default=3.2, help="Max allowed absolute yaw in denormalized prediction.")
-    parser.add_argument("--max-yaw-step-rad", type=float, default=1.2, help="Max allowed yaw change between consecutive denormalized points.")
-    parser.add_argument("--max-first-step-error-m", type=float, default=2.5, help="Max allowed 0.5s XY error against available future ground truth.")
-    parser.add_argument("--width", type=int, default=960, help="Resize width for VL image upload.")
-    parser.add_argument("--height", type=int, default=540, help="Resize height for VL image upload.")
-    parser.add_argument("--use-raw-resolution", action="store_true", help="Upload raw image resolution instead of resized images.")
-    parser.add_argument(
-        "--selection-mode",
-        choices=["sorted", "diverse-by-command"],
-        default="diverse-by-command",
-        help="How to select scenes when scene-path is not provided.",
-    )
-    return parser.parse_args()
 
 
 def load_stats() -> tuple[np.ndarray, np.ndarray]:
@@ -193,7 +146,10 @@ def pick_scene_paths(args: argparse.Namespace) -> list[Path]:
         picked = scene_paths[start:end]
 
     if not picked:
-        raise ValueError(f"Scene selection is empty. scene_offset={args.scene_offset}, scene_limit={args.scene_limit}, total={len(scene_paths)}")
+        raise ValueError(
+            f"Scene selection is empty. scene_offset={args.scene_offset}, "
+            f"scene_limit={args.scene_limit}, total={len(scene_paths)}"
+        )
     return picked
 
 
@@ -213,7 +169,8 @@ def build_history_trajectory(scene_dict_list: list[dict[str, Any]], current_idx:
     for i, frame in enumerate(history_frames):
         rel_pose = absolute_to_relative_pose(origin, frame_to_global_pose(frame))
         status_lines.append(
-            f"   - t-{size - i - 1}: ({format_number(float(rel_pose[0]))}, {format_number(float(rel_pose[1]))}, {format_number(float(rel_pose[2]))})"
+            f"   - t-{size - i - 1}: "
+            f"({format_number(float(rel_pose[0]))}, {format_number(float(rel_pose[1]))}, {format_number(float(rel_pose[2]))})"
         )
     status_lines.append(f"   - t-{0}: ({format_number(0.0)}, {format_number(0.0)}, {format_number(0.0)})")
     return ", ".join(status_lines)
@@ -348,38 +305,6 @@ def build_openai_messages(image_path: Path, user_text: str, args: argparse.Names
             ],
         },
     ], image_meta
-
-
-def build_text_control_messages() -> list[dict[str, Any]]:
-    prompt = """Return only strict JSON, with no markdown and no extra text.
-Use exactly this schema and valid values:
-{
-  "critical_objects": {
-    "nearby_vehicle": "no",
-    "conflicting_pedestrian": "no",
-    "cyclist": "no",
-    "construction": "no",
-    "traffic_element": "no",
-    "weather_condition": "no",
-    "road_hazard": "no",
-    "emergency_vehicle": "no",
-    "animal": "no",
-    "special_vehicle": "no",
-    "conflicting_vehicle": "no",
-    "door_opening_vehicle": "no"
-  },
-  "explanation": "Schema control sample.",
-  "meta_behaviour": {
-    "speed": "keep",
-    "command": "straight"
-  },
-  "future_trajectory": [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
-}
-"""
-    return [
-        {"role": "system", "content": "You are an expert driver."},
-        {"role": "user", "content": prompt},
-    ]
 
 
 def build_text_planning_control_messages() -> list[dict[str, Any]]:
@@ -731,47 +656,10 @@ def validate_denormalized_trajectory(
             }
         )
 
-    metrics["trajectory_valid"] = bool(metrics["sanity_valid"] and (metrics["reference_valid"] if metrics["reference_valid"] is not None else True))
+    metrics["trajectory_valid"] = bool(
+        metrics["sanity_valid"] and (metrics["reference_valid"] if metrics["reference_valid"] is not None else True)
+    )
     return metrics
-
-
-def run_text_control(
-    session: requests.Session,
-    args: argparse.Namespace,
-    means: np.ndarray,
-    stds: np.ndarray,
-) -> dict[str, Any]:
-    messages = build_text_control_messages()
-    try:
-        response_json, latency_sec = post_chat_completion(
-            session=session,
-            base_url=args.base_url,
-            model_name=args.model_name,
-            messages=messages,
-            max_tokens=args.max_tokens,
-            temperature=args.temperature,
-            timeout_sec=args.timeout_sec,
-        )
-        raw_text = extract_message_content(response_json)
-        obj = extract_first_json_object(raw_text)
-        contract = validate_output_contract(obj, raw_text)
-        trajectory = extract_trajectory(obj, raw_text)
-        denorm = denormalize_trajectory(trajectory, means, stds) if trajectory is not None else None
-        traj_validation = validate_denormalized_trajectory(denorm, np.zeros((0, 3), dtype=np.float64), args)
-        return {
-            "request_ok": True,
-            "latency_sec": round(latency_sec, 6),
-            "raw_text_preview": raw_text[:1000],
-            "contract": contract,
-            "trajectory": traj_validation,
-        }
-    except Exception as exc:
-        return {
-            "request_ok": False,
-            "error": str(exc),
-            "contract": {"contract_valid": False},
-            "trajectory": {"trajectory_valid": False},
-        }
 
 
 def run_text_planning_control(
@@ -896,151 +784,3 @@ def run_scene_validation(
             "raw_text_preview": "",
             "latency_sec": None,
         }
-
-
-def main() -> None:
-    args = parse_args()
-    warmup_root = Path(args.warmup_root).expanduser().resolve()
-    sensor_blobs_root = warmup_root / "sensor_blobs"
-    if not sensor_blobs_root.exists():
-        raise FileNotFoundError(f"Sensor blobs path does not exist: {sensor_blobs_root}")
-
-    scene_paths = pick_scene_paths(args)
-    means, stds = load_stats()
-    session = requests.Session()
-
-    report: dict[str, Any] = {
-        "timestamp": datetime.utcnow().isoformat() + "Z",
-        "base_url": args.base_url,
-        "model_name": args.model_name,
-        "warmup_root": str(warmup_root),
-        "scene_count": len(scene_paths),
-        "scene_paths": [str(p) for p in scene_paths],
-        "max_tokens": args.max_tokens,
-        "temperature": args.temperature,
-        "timeout_sec": args.timeout_sec,
-        "resize": {
-            "mode": "raw" if args.use_raw_resolution else "fixed",
-            "width": None if args.use_raw_resolution else args.width,
-            "height": None if args.use_raw_resolution else args.height,
-        },
-        "selection_mode": args.selection_mode,
-        "validation_thresholds": {
-            "max_step_distance_m": args.max_step_distance_m,
-            "max_final_displacement_m": args.max_final_displacement_m,
-            "max_abs_yaw_rad": args.max_abs_yaw_rad,
-            "max_yaw_step_rad": args.max_yaw_step_rad,
-            "max_first_step_error_m": args.max_first_step_error_m,
-            "min_pass_rate": args.min_pass_rate,
-        },
-    }
-
-    if args.run_text_control:
-        print("Running text-only schema control...")
-        text_control = run_text_control(session, args, means, stds)
-        report["text_control"] = text_control
-        if text_control["request_ok"]:
-            print(
-                "  text_control contract_valid={contract} trajectory_valid={traj} latency={latency:.3f}s".format(
-                    contract=text_control["contract"]["contract_valid"],
-                    traj=text_control["trajectory"]["trajectory_valid"],
-                    latency=text_control["latency_sec"],
-                )
-            )
-        else:
-            print(f"  text_control request failed: {text_control['error']}")
-
-    if args.run_text_planning_control:
-        print("Running text-only planning-style control...")
-        text_planning_control = run_text_planning_control(session, args, means, stds)
-        report["text_planning_control"] = text_planning_control
-        if text_planning_control["request_ok"]:
-            print(
-                "  text_planning overall_valid={overall} contract_valid={contract} intent_valid={intent} trajectory_valid={traj} latency={latency:.3f}s".format(
-                    overall=text_planning_control["overall_valid"],
-                    contract=text_planning_control["contract"]["contract_valid"],
-                    intent=text_planning_control["intent_alignment"]["intent_alignment_valid"],
-                    traj=text_planning_control["trajectory"]["trajectory_valid"],
-                    latency=text_planning_control["latency_sec"],
-                )
-            )
-        else:
-            print(f"  text_planning request failed: {text_planning_control['error']}")
-
-    scene_reports = []
-    raw_dir = Path(args.save_raw_dir).expanduser().resolve() if args.save_raw_dir else None
-    if raw_dir:
-        raw_dir.mkdir(parents=True, exist_ok=True)
-
-    for idx, scene_path in enumerate(scene_paths, start=1):
-        print(f"Running VL planning validation {idx}/{len(scene_paths)}: {scene_path.name}")
-        scene_report = run_scene_validation(session, scene_path, sensor_blobs_root, args, means, stds)
-        scene_reports.append(scene_report)
-        latency_value = scene_report["latency_sec"]
-        if latency_value is None:
-            latency_text = "n/a"
-        else:
-            latency_text = f"{latency_value:.3f}s"
-        print(
-            "  intent={intent} contract_valid={contract} intent_valid={intent_valid} trajectory_valid={traj} overall_valid={overall} latency={latency}".format(
-                intent=scene_report["command"],
-                contract=scene_report["contract"]["contract_valid"],
-                intent_valid=scene_report["intent_alignment"]["intent_alignment_valid"],
-                traj=scene_report["trajectory"]["trajectory_valid"],
-                overall=scene_report["overall_valid"],
-                latency=latency_text,
-            )
-        )
-        if raw_dir:
-            raw_path = raw_dir / f"{scene_path.stem}.txt"
-            raw_path.write_text(scene_report["raw_text_preview"], encoding="utf-8")
-
-    latencies = [r["latency_sec"] for r in scene_reports if r["latency_sec"] is not None]
-    request_ok_count = sum(1 for r in scene_reports if r["request_ok"])
-    contract_pass = sum(1 for r in scene_reports if r["contract"]["contract_valid"])
-    intent_pass = sum(1 for r in scene_reports if r["intent_alignment"]["intent_alignment_valid"])
-    trajectory_pass = sum(1 for r in scene_reports if r["trajectory"]["trajectory_valid"])
-    overall_pass = sum(1 for r in scene_reports if r["overall_valid"])
-
-    vl_summary = {
-        "count": len(scene_reports),
-        "request_ok_count": request_ok_count,
-        "contract_valid_count": contract_pass,
-        "intent_alignment_valid_count": intent_pass,
-        "trajectory_valid_count": trajectory_pass,
-        "overall_valid_count": overall_pass,
-        "request_ok_rate": round(request_ok_count / len(scene_reports), 6),
-        "contract_valid_rate": round(contract_pass / len(scene_reports), 6),
-        "intent_alignment_valid_rate": round(intent_pass / len(scene_reports), 6),
-        "trajectory_valid_rate": round(trajectory_pass / len(scene_reports), 6),
-        "overall_valid_rate": round(overall_pass / len(scene_reports), 6),
-        "mean_latency_sec": round(statistics.mean(latencies), 6) if latencies else None,
-        "p50_latency_sec": round(percentile(latencies, 50), 6) if latencies else None,
-        "p95_latency_sec": round(percentile(latencies, 95), 6) if latencies else None,
-    }
-    vl_summary["recommended_for_latency_gate"] = bool(vl_summary["overall_valid_rate"] >= args.min_pass_rate)
-    if vl_summary["recommended_for_latency_gate"]:
-        vl_summary["recommendation_reason"] = "Selected VL planning samples passed the current contract and trajectory checks."
-    else:
-        vl_summary["recommendation_reason"] = "Selected VL planning samples did not pass the current contract and trajectory checks at the required rate."
-
-    report["vl_summary"] = vl_summary
-    report["scene_reports"] = scene_reports
-
-    print(json.dumps(report, ensure_ascii=False, indent=2))
-
-    if args.output_json:
-        output_path = Path(args.output_json).expanduser().resolve()
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        print(f"Saved report to {output_path}")
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except requests.HTTPError as exc:
-        response = exc.response
-        if response is not None:
-            sys.stderr.write(response.text + "\n")
-        raise
