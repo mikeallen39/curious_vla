@@ -63,12 +63,17 @@
 - `warmup_two_stage` 传感器与 synthetic scenes：
   `/cache/ma-user/curious_vla_assets/data/downloads/warmup_two_stage`
 
-其中：
+其中正确口径应为：
 
 - `navsim_log_path` 指向 `test` metadata
-- `original_sensor_path` / `synthetic_sensor_path` / `synthetic_scenes_path` 指向 `warmup_two_stage`
+- `original_sensor_path` 指向 `test` 原始相机：
+  `/cache/ma-user/curious_vla_assets/data/downloads/test_sensor_blobs/openscene-v1.1/sensor_blobs/test`
+- `synthetic_sensor_path` 指向：
+  `/cache/ma-user/curious_vla_assets/data/downloads/warmup_two_stage/sensor_blobs`
+- `synthetic_scenes_path` 指向：
+  `/cache/ma-user/curious_vla_assets/data/downloads/warmup_two_stage/synthetic_scene_pickles`
 
-这是当前这条 two-stage warmup 评测应采用的正确口径。
+此前文档把 `original_sensor_path` 误写成了 `warmup_two_stage/sensor_blobs`，这是错误的。若按那个路径执行，结果不应再视为与 GPU original-scene 口径一致的 benchmark 复现。
 
 ### 2.4 vLLM 服务配置
 
@@ -114,7 +119,7 @@ export STATS_PATH='/home/ma-user/curious_vla/stats/trajectory_stats_train.json'
   +agent.config.max_tokens=512 \
   +agent.config.temperature=0.0 \
   navsim_log_path=/cache/ma-user/curious_vla_assets/data/downloads/test_navsim_logs/test \
-  original_sensor_path=/cache/ma-user/curious_vla_assets/data/downloads/warmup_two_stage/sensor_blobs \
+  original_sensor_path=/cache/ma-user/curious_vla_assets/data/downloads/test_sensor_blobs/openscene-v1.1/sensor_blobs/test \
   synthetic_sensor_path=/cache/ma-user/curious_vla_assets/data/downloads/warmup_two_stage/sensor_blobs \
   synthetic_scenes_path=/cache/ma-user/curious_vla_assets/data/downloads/warmup_two_stage/synthetic_scene_pickles \
   metric_cache_path=/home/ma-user/curious_vla/exp_root/metric_cache_warmup_two_stage_eval \
@@ -330,6 +335,72 @@ export STATS_PATH='/home/ma-user/curious_vla/stats/trajectory_stats_train.json'
 - 当前结果偏低，最主要的问题是“对比口径没完全对齐”，而不是“模型在 `LLaMA-Factory` 上掉点”
 - 如果要更接近论文里的数字，下一步应优先复现 `navhard_two_stage`，或者进一步走 `submission.pkl` 的 leaderboard 流程
 - 在没有把 split、提交流程、评测脚本和部署配置统一之前，直接拿这次 `warmup_two_stage` 分数和论文主结果做强对比，结论并不牢靠
+
+### 4.5 这次 `220` 条里，`stage-1` 和 `stage-2` 各占多少
+
+这个问题容易被脚本名误导。
+
+虽然当前跑的是：
+
+- `run_pdm_score_one_stage.py`
+
+但在 `train_test_split=warmup_two_stage` 这个配置下，实际评测的不是“只有 stage-1”，而是：
+
+- `stage-1 original scenes`：`16` 条
+- `stage-2 reactive synthetic scenes`：`204` 条
+- 合计：`220` 条
+
+这个拆分来自：
+
+- `../navsim_eval/navsim/planning/script/config/common/train_test_split/scene_filter/warmup_two_stage.yaml`
+
+其中：
+
+- `tokens` 对应 `stage-1 original`
+- `reactive_synthetic_initial_tokens` 对应 `reactive stage-2 synthetic`
+
+因此，这次 `warmup_two_stage` 的正式本地评测结果，应理解为：
+
+- 不是只测 `stage-1`
+- 也不是测所有可能的 two-stage 变体
+- 而是测了 `stage-1 + reactive stage-2`
+
+进一步把本次 `2026-04-14` 修正数据口径后的结果拆开，可以看到：
+
+- `stage-1 original`
+  - 样本数：`16`
+  - 成功：`16 / 16`
+  - `PDMS`: `0.8179559110736293`
+  - `EPDMS(V2)`: `0.829133265569399`
+  - `0` 分样本数：`2`
+  - `>= 0.9` 分样本数：`11`
+- `stage-2 reactive synthetic`
+  - 样本数：`204`
+  - 成功：`204 / 204`
+  - `PDMS`: `0.36680410295613197`
+  - `EPDMS(V2)`: `0.3165043571556761`
+  - `0` 分样本数：`123`
+  - `>= 0.9` 分样本数：`33`
+
+这说明：
+
+- 当前总分低，主要不是 `stage-1` 崩掉了
+- `stage-1 original` 的表现其实还可以
+- 真正把整体分数拉低的，是 `reactive stage-2 synthetic`
+
+再看失败模式也能说明这一点：
+
+- `stage-1` 的 `0` 分主要来自 `drivable_area_compliance=0`
+- `stage-2` 的主要问题则是：
+  - `collision`
+  - `lane_keeping`
+  - `drivable_area_compliance`
+
+所以，如果后面要继续分析 NPU 上的模型表现，最值得优先盯的是：
+
+- `reactive stage-2` 为什么大量出现碰撞、出界和车道保持失败
+
+而不是怀疑这次 `warmup_two_stage` 是否只测了 `stage-1`。
 
 ## 5. 能不能用论文中的数据
 
