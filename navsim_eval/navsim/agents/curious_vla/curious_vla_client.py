@@ -30,8 +30,6 @@ import logging
 import time
 import httpx
 
-http_client = httpx.Client(trust_env=False)
-
 logger = logging.getLogger(__name__)
 
 def encode_image_to_base64(image_path):
@@ -200,6 +198,9 @@ class CuriousVLAClient(BaseModule):
                  api_key: str = "0",
                  max_tokens: int = 4096,
                  default_temperature: float = 0.0,
+                 api_timeout_seconds: float = 180.0,
+                 api_max_retries: int = 0,
+                 client_max_attempts: int = 2,
                  **kwargs):
         super().__init__()
 
@@ -210,11 +211,25 @@ class CuriousVLAClient(BaseModule):
         # Detect available servers and create persistent OpenAI clients
         self.clients = []
         self.rnd = random.Random(int(threading.get_ident()) * 100000 + int(os.getpid()))
+        self.request_max_attempts = max(1, int(client_max_attempts))
+        self.http_client = httpx.Client(
+            trust_env=False,
+            timeout=httpx.Timeout(timeout=float(api_timeout_seconds), connect=5.0),
+            limits=httpx.Limits(max_connections=32, max_keepalive_connections=16),
+        )
         for url in server_urls:
             try:
-                resp = http_client.get(f"{url}/models", timeout=2)
+                resp = self.http_client.get(f"{url}/models", timeout=2)
                 if resp.status_code == 200:
-                    self.clients.append(OpenAI(api_key=api_key, base_url=url, http_client=http_client))
+                    self.clients.append(
+                        OpenAI(
+                            api_key=api_key,
+                            base_url=url,
+                            http_client=self.http_client,
+                            max_retries=api_max_retries,
+                            timeout=httpx.Timeout(timeout=float(api_timeout_seconds), connect=5.0),
+                        )
+                    )
             except Exception:
                 pass
 
@@ -247,7 +262,7 @@ class CuriousVLAClient(BaseModule):
 
         last_exc = None
 
-        for attempt in range(3):
+        for attempt in range(self.request_max_attempts):
             client = self.rnd.choice(self.clients)
             try:
                 result = client.chat.completions.create(
@@ -278,10 +293,10 @@ class CuriousVLAClient(BaseModule):
             except Exception as e:
                 last_exc = e
                 logger.warning(
-                    f"CuriousVLAClient.forward failed (attempt {attempt + 1}/3) "
+                    f"CuriousVLAClient.forward failed (attempt {attempt + 1}/{self.request_max_attempts}) "
                     f"base_url={client.base_url}: {type(e).__name__}: {e}"
                 )
-                if attempt < 2:
+                if attempt < self.request_max_attempts - 1:
                     time.sleep(0.2 * (2 ** attempt) + self.rnd.random() * 0.1)
                     continue
                 raise last_exc

@@ -28,6 +28,9 @@ class CuriousVlaConfig:
     # --- API call parameters ---
     max_tokens: int = 3072
     temperature: float = 0.0
+    api_timeout_seconds: float = 180.0
+    api_max_retries: int = 0
+    client_max_attempts: int = 2
 
     # If False, missing front-view images are treated as a hard data error.
     allow_missing_front_camera_fallback: bool = False

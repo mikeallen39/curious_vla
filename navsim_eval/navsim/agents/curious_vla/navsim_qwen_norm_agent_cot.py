@@ -95,6 +95,9 @@ class NavsimCoTQwenAgent(AbstractAgent):
             api_key=self._config.api_key,
             max_tokens=self._config.max_tokens,
             default_temperature=self._config.temperature,
+            api_timeout_seconds=self._config.api_timeout_seconds,
+            api_max_retries=self._config.api_max_retries,
+            client_max_attempts=self._config.client_max_attempts,
         )
 
     def get_sensor_config(self) -> SensorConfig:
