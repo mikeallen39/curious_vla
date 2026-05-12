@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copy this file to local/local_env_override.sh on a new machine and adjust paths.
+# Copy this file to my_scripts/local_env_override.sh on a new machine and adjust paths.
 
 export PROJECT_ROOT="/path/to/curious_vla"
 export DATA_ROOT="/path/to/navsim_data"

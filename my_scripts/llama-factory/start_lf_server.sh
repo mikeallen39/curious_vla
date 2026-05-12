@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/local_env.sh"
+source "$SCRIPT_DIR/../local_env.sh"
 source "$CONDA_ROOT/etc/profile.d/conda.sh"
 conda activate "$LF_ENV_PREFIX"
 
